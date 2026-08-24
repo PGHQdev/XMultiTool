@@ -58,6 +58,40 @@ describe('observeCells', () => {
     await vi.waitFor(() => expect(calls).toHaveLength(3))
   })
 
+  it('reports every cell inside a batch container added at once', async () => {
+    const seen: string[] = []
+    observeCells(document.body, (id) => seen.push(id))
+    const batch = document.createElement('div')
+    const first = document.createElement('div')
+    first.setAttribute('data-testid', 'cellInnerDiv')
+    first.innerHTML = '<a href="/x/status/5005">5h</a>'
+    const second = document.createElement('div')
+    second.setAttribute('data-testid', 'cellInnerDiv')
+    second.innerHTML = '<a href="/x/status/6006">6h</a>'
+    batch.append(first, second)
+    document.querySelector(X_SELECTORS.dom.primaryColumn)?.appendChild(batch)
+    await vi.waitFor(() => {
+      expect(seen).toContain('5005')
+      expect(seen).toContain('6006')
+    })
+  })
+
+  it('reports a cell nested several levels inside an added subtree', async () => {
+    const seen: string[] = []
+    observeCells(document.body, (id) => seen.push(id))
+    const wrapper = document.createElement('div')
+    const mid = document.createElement('div')
+    const inner = document.createElement('section')
+    const cell = document.createElement('div')
+    cell.setAttribute('data-testid', 'cellInnerDiv')
+    cell.innerHTML = '<a href="/x/status/7007">7h</a>'
+    inner.appendChild(cell)
+    mid.appendChild(inner)
+    wrapper.appendChild(mid)
+    document.querySelector(X_SELECTORS.dom.primaryColumn)?.appendChild(wrapper)
+    await vi.waitFor(() => expect(seen).toContain('7007'))
+  })
+
   it('stops reporting after the returned function runs', async () => {
     const seen: string[] = []
     const stop = observeCells(document.body, (id) => seen.push(id))

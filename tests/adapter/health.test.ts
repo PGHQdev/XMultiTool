@@ -43,4 +43,26 @@ describe('SelectorHealth', () => {
     const [entry] = health.report()
     expect(entry?.healthy).toBe(true)
   })
+
+  it('reports staleForMs back to 0 after a stale selector recovers', () => {
+    let now = 0
+    const health = new SelectorHealth(() => now, 10_000)
+    health.record('cell', 0)
+    now = 10_001
+    const [stale] = health.report()
+    expect(stale).toEqual({
+      id: 'cell',
+      matches: 0,
+      staleForMs: 10_001,
+      healthy: false,
+    })
+    health.record('cell', 1)
+    const [recovered] = health.report()
+    expect(recovered).toEqual({
+      id: 'cell',
+      matches: 1,
+      staleForMs: 0,
+      healthy: true,
+    })
+  })
 })
