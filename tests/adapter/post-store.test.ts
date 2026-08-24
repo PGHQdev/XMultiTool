@@ -85,4 +85,23 @@ describe('PostStore', () => {
       angry.addNode('5', document.createElement('div')),
     ).not.toThrow()
   })
+
+  it('emits when the same node is reused for a different id', () => {
+    const node = document.createElement('div')
+    store.addRecord(makePost('x'))
+    store.addNode('x', node)
+    expect(pairs).toHaveLength(1)
+    store.addRecord(makePost('y'))
+    store.addNode('y', node)
+    expect(pairs).toHaveLength(2)
+  })
+
+  it('does not re-emit when a replacement record arrives for an already-paired id', () => {
+    const node = document.createElement('div')
+    store.addRecord(makePost('z'))
+    store.addNode('z', node)
+    expect(pairs).toHaveLength(1)
+    store.addRecord(makePost('z'))
+    expect(pairs).toHaveLength(1)
+  })
 })

@@ -28,7 +28,7 @@ class Bounded<V> extends Map<string, V> {
 export class PostStore {
   private readonly records: Bounded<Post>
   private readonly nodes: Bounded<HTMLElement>
-  private readonly paired = new Map<string, HTMLElement>()
+  private readonly paired = new WeakMap<HTMLElement, string>()
 
   constructor(private readonly options: PostStoreOptions) {
     const max = options.max ?? 500
@@ -54,9 +54,9 @@ export class PostStore {
     const post = this.records.get(id)
     const node = this.nodes.get(id)
     if (!post || !node) return
-    if (this.paired.get(id) === node) return
+    if (this.paired.get(node) === id) return
 
-    this.paired.set(id, node)
+    this.paired.set(node, id)
     try {
       this.options.onPair({ post, node })
     } catch {
