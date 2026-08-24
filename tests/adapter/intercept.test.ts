@@ -28,6 +28,38 @@ const jsonResponse = (body: unknown) =>
     headers: { 'content-type': 'application/json' },
   })
 
+function fakeXhrClass() {
+  return class FakeXMLHttpRequest {
+    responseText = ''
+    openCalls: unknown[][] = []
+    sendCalls: unknown[][] = []
+    private loadListeners: Array<() => void> = []
+
+    open(...args: unknown[]): void {
+      this.openCalls.push(args)
+    }
+
+    send(...args: unknown[]): void {
+      this.sendCalls.push(args)
+    }
+
+    addEventListener(type: string, listener: () => void): void {
+      if (type === 'load') this.loadListeners.push(listener)
+    }
+
+    fireLoad(): void {
+      for (const listener of this.loadListeners) listener()
+    }
+  }
+}
+
+function xhrTarget() {
+  const Fake = fakeXhrClass()
+  const t = target(async () => jsonResponse({}))
+  t.XMLHttpRequest = Fake as unknown as typeof XMLHttpRequest
+  return { t, makeXhr: () => new Fake() }
+}
+
 describe('installInterceptor', () => {
   it('forwards a tracked graphql response', async () => {
     const t = target(async () => jsonResponse({ data: { ok: true } }))
@@ -96,5 +128,65 @@ describe('installInterceptor', () => {
     await t.fetch('https://example.com/i/api/graphql/h/HomeTimeline')
     await new Promise((resolve) => setTimeout(resolve, 10))
     expect(t.messages).toHaveLength(0)
+  })
+
+  it('reports a payload captured over xhr for a tracked operation', () => {
+    const { t, makeXhr } = xhrTarget()
+    installInterceptor(t)
+    const xhr = makeXhr()
+    xhr.open('GET', TRACKED)
+    xhr.send()
+    xhr.responseText = JSON.stringify({ data: { ok: true } })
+    xhr.fireLoad()
+    expect(t.messages).toEqual([
+      {
+        tag: BRIDGE_TAG,
+        op: 'HomeTimeline',
+        url: TRACKED,
+        payload: { data: { ok: true } },
+      },
+    ])
+  })
+
+  it('reports nothing over xhr for an untracked operation', () => {
+    const { t, makeXhr } = xhrTarget()
+    installInterceptor(t)
+    const xhr = makeXhr()
+    xhr.open('GET', UNTRACKED)
+    xhr.send()
+    xhr.responseText = JSON.stringify({ data: {} })
+    xhr.fireLoad()
+    expect(t.messages).toHaveLength(0)
+  })
+
+  it('still calls the original xhr open and send with their original arguments', () => {
+    const { t, makeXhr } = xhrTarget()
+    installInterceptor(t)
+    const xhr = makeXhr()
+    xhr.open('POST', TRACKED)
+    xhr.send('payload-body')
+    expect(xhr.openCalls).toEqual([['POST', TRACKED]])
+    expect(xhr.sendCalls).toEqual([['payload-body']])
+  })
+
+  it('stays silent when the xhr response body is not json', () => {
+    const { t, makeXhr } = xhrTarget()
+    installInterceptor(t)
+    const xhr = makeXhr()
+    xhr.open('GET', TRACKED)
+    xhr.send()
+    xhr.responseText = '<html>'
+    expect(() => xhr.fireLoad()).not.toThrow()
+    expect(t.messages).toHaveLength(0)
+  })
+
+  it('restores the original xhr open and send on uninstall', () => {
+    const { t } = xhrTarget()
+    const originalOpen = t.XMLHttpRequest.prototype.open
+    const originalSend = t.XMLHttpRequest.prototype.send
+    const uninstall = installInterceptor(t)
+    uninstall()
+    expect(t.XMLHttpRequest.prototype.open).toBe(originalOpen)
+    expect(t.XMLHttpRequest.prototype.send).toBe(originalSend)
   })
 })

@@ -81,7 +81,9 @@ export function installInterceptor(target: InterceptTarget): () => void {
     ) {
       try {
         urls.set(this, typeof url === 'string' ? url : url.toString())
-      } catch {}
+      } catch {
+        // If the url can't be read here, tracking is skipped; open still runs below.
+      }
       return (originalOpen as (...a: unknown[]) => void).call(
         this,
         method,
@@ -106,7 +108,9 @@ export function installInterceptor(target: InterceptTarget): () => void {
             }
           })
         }
-      } catch {}
+      } catch {
+        // A failure choosing whether to listen must not stop the site's own send.
+      }
       return (originalSend as (...a: unknown[]) => void).call(this, body)
     } as typeof originalSend
   }
