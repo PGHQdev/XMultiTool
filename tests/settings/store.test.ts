@@ -105,4 +105,22 @@ describe('SettingsStore', () => {
     await store.setEnabled('a', true)
     expect(seen).toHaveBeenCalledTimes(1)
   })
+
+  it('keeps notifying later subscribers when an earlier one throws', async () => {
+    const area = fakeArea()
+    const store = new SettingsStore(area)
+    await store.load()
+    const first = vi.fn()
+    const second = vi.fn(() => {
+      throw new Error('boom')
+    })
+    const third = vi.fn()
+    store.subscribe(first)
+    store.subscribe(second)
+    store.subscribe(third)
+    await expect(store.setEnabled('a', true)).resolves.toBeUndefined()
+    expect(first).toHaveBeenCalledTimes(1)
+    expect(third).toHaveBeenCalledTimes(1)
+    expect((area.data[SETTINGS_KEY] as any).enabled.a).toBe(true)
+  })
 })

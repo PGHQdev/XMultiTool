@@ -117,6 +117,12 @@ export class SettingsStore {
 
   private async persist(): Promise<void> {
     await this.area.set(SETTINGS_KEY, this.state)
-    for (const listener of this.listeners) listener(this.state)
+    for (const listener of this.listeners) {
+      try {
+        listener(this.state)
+      } catch {
+        // A subscriber failure must never break the broadcast to the others.
+      }
+    }
   }
 }
