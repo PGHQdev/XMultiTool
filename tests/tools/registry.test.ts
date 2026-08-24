@@ -8,6 +8,12 @@ const ctx = {
   settings: {},
   storage: { get: async () => undefined, set: async () => {} },
   log: { info() {}, warn() {}, error() {} },
+  bus: {
+    request: async () => undefined,
+    handle: () => () => {},
+    emit: async () => {},
+    on: () => () => {},
+  },
 } as ToolCtx<any>
 
 function tool(id: string, onPost: Tool<any>['onPost']): Tool<any> {

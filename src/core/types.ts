@@ -81,6 +81,7 @@ export interface ToolCtx<S> {
   settings: S
   storage: ToolStorage
   log: Logger
+  bus: import('./bus').Bus
 }
 
 export interface Tool<S = Record<string, never>> {
