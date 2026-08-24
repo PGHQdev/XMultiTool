@@ -18,6 +18,7 @@
     "rules": {
       "preset": "recommended",
       "suspicious": {
+        // core Tool interface returns Verdict | void by design
         "noConfusingVoidType": "off"
       }
     }
