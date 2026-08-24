@@ -1,0 +1,110 @@
+{
+  "data": {
+    "home": {
+      "home_timeline_urt": {
+        "instructions": [
+          {
+            "type": "TimelineAddEntries",
+            "entries": [
+              {
+                "entryId": "tweet-1001",
+                "content": {
+                  "entryType": "TimelineTimelineItem",
+                  "itemContent": {
+                    "itemType": "TimelineTweet",
+                    "tweet_results": {
+                      "result": {
+                        "__typename": "Tweet",
+                        "rest_id": "1001",
+                        "core": {
+                          "user_results": {
+                            "result": {
+                              "rest_id": "u1",
+                              "is_blue_verified": true,
+                              "legacy": {
+                                "screen_name": "jack",
+                                "name": "Jack",
+                                "followers_count": 7000000,
+                                "following": false
+                              }
+                            }
+                          }
+                        },
+                        "views": { "count": "4200" },
+                        "legacy": {
+                          "created_at": "Tue Mar 21 20:50:14 +0000 2006",
+                          "full_text": "just setting up my twttr https://t.co/abc",
+                          "lang": "en",
+                          "reply_count": 3,
+                          "retweet_count": 5,
+                          "favorite_count": 9,
+                          "quote_count": 1,
+                          "in_reply_to_status_id_str": null,
+                          "entities": {
+                            "urls": [
+                              { "expanded_url": "https://example.com/a" }
+                            ],
+                            "media": [
+                              {
+                                "type": "photo",
+                                "media_url_https": "https://pbs.example/a.jpg",
+                                "ext_alt_text": "a photo"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "entryId": "promoted-2002",
+                "content": {
+                  "entryType": "TimelineTimelineItem",
+                  "itemContent": {
+                    "itemType": "TimelineTweet",
+                    "promotedMetadata": { "advertiser_results": {} },
+                    "tweet_results": {
+                      "result": {
+                        "__typename": "Tweet",
+                        "rest_id": "2002",
+                        "core": {
+                          "user_results": {
+                            "result": {
+                              "rest_id": "u2",
+                              "legacy": {
+                                "screen_name": "brand",
+                                "name": "Brand"
+                              }
+                            }
+                          }
+                        },
+                        "legacy": {
+                          "created_at": "Mon Jan 06 12:00:00 +0000 2025",
+                          "full_text": "buy this",
+                          "lang": "en",
+                          "reply_count": 0,
+                          "retweet_count": 0,
+                          "favorite_count": 0,
+                          "quote_count": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "entryId": "who-to-follow-3",
+                "content": {
+                  "entryType": "TimelineTimelineModule",
+                  "items": []
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
