@@ -4,12 +4,13 @@ Three rules keep this project repairable when X changes.
 
 1. **Every X-specific string lives in `src/core/adapter/x-selectors.ts`.** Test ids,
    GraphQL operation names, JSON paths, cookie names. `tests/architecture/selectors.test.ts`
-   fails the build when one appears elsewhere.
+   scans `src/` and `entrypoints/` and fails the build when one appears elsewhere.
 2. **Tools do not write to the DOM.** A tool returns a verdict. `src/core/tools/apply.ts`
    is the only writer. This is what lets several tools judge the same post without
    fighting each other or X's re-render.
-3. **Tools do not call `chrome.*` or read storage.** They use the context object. All
-   browser API access goes through `src/core/browser.ts`.
+3. **Tools reach the browser only through the context object.** A tool never calls
+   `chrome.*` or imports `browser`. Browser API access to the live `browser.*` global
+   happens only in `src/core/browser-live.ts`, which wraps it for everything else.
 
 ## Adding a tool
 

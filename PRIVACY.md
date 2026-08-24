@@ -15,5 +15,4 @@ Permissions and their reasons:
 | `storage` | Keeps settings in the local profile |
 | `sidePanel` | Opens the side panel |
 | `tabs` | Reads which tab the side panel is showing |
-| `scripting` | Injects the page-world reader into x.com |
 | `https://x.com/*` | The only site the extension runs on |
