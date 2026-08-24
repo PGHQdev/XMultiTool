@@ -4,13 +4,17 @@ CI proves the logic. Only this checklist proves the live path. Run it against x.
 in a logged-in profile before every release.
 
 1. Load `.output/chrome-mv3` unpacked. Open x.com/home.
-2. Open the side panel from the toolbar icon. The Status screen counts posts as you scroll.
+2. Scroll a little, then open the side panel from the toolbar icon. The panel reads its
+   counters once, when it opens, not continuously, so `Posts seen` shows what happened
+   before you opened it, not what happens afterward.
 3. Enable Diagnostics and turn on "Explain every post". Every paired cell carries
    `data-xmt-label="graphql"`. A `dom` label would mean the adapter started producing
    DOM-sourced records, which this plan's adapter never does.
-4. Scroll 200 posts. The count keeps rising and the timeline does not stutter.
+4. Scroll 200 posts, then close and reopen the panel for a fresh reading (see step 2):
+   `Posts seen` is higher than before, and the timeline does not stutter while you scroll.
 5. Open a post, go back, open a profile. Status keeps counting on each screen.
-6. Settings → Selector health: every entry reads `ok`.
+6. Close and reopen the panel for a fresh reading, then check Settings → Selector
+   health: every entry reads `ok`.
 7. Turn Diagnostics off, then reload the page. No cell carries a `data-xmt`
    attribute. Cells tagged before the toggle keep their attributes until reload:
    turning a tool off does not re-scan or re-verdict cells already on screen.
