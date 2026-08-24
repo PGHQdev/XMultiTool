@@ -71,6 +71,9 @@ export function createBus(transport: BusTransport): Bus {
     },
     handle(type, handler) {
       attach()
+      if (handlers.has(type)) {
+        throw new Error(`xmt: a handler is already registered for "${type}"`)
+      }
       handlers.set(type, handler as (payload: unknown) => unknown)
       return () => handlers.delete(type)
     },

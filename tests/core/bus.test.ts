@@ -79,4 +79,19 @@ describe('createBus', () => {
     bus.handle('x', () => 1)
     await expect(a.send({ random: true })).resolves.toBeUndefined()
   })
+
+  it('throws when a second handler is registered for a live type', () => {
+    const [, b] = linkedTransports()
+    const server = createBus(b)
+    server.handle('dup', () => 1)
+    expect(() => server.handle('dup', () => 2)).toThrow(/dup/)
+  })
+
+  it('allows re-registering a type after the previous handler unsubscribed', () => {
+    const [, b] = linkedTransports()
+    const server = createBus(b)
+    const unsubscribe = server.handle('dup', () => 1)
+    unsubscribe()
+    expect(() => server.handle('dup', () => 2)).not.toThrow()
+  })
 })

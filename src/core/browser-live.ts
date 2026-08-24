@@ -1,5 +1,9 @@
 import { type Browser, browser } from 'wxt/browser'
-import { createStorageArea, type StorageApi } from './browser'
+import {
+  createRuntimeTransport,
+  createStorageArea,
+  type StorageApi,
+} from './browser'
 import { createBus } from './bus'
 
 const storageApi: StorageApi = {
@@ -16,14 +20,7 @@ const storageApi: StorageApi = {
 
 export const storage = createStorageArea(storageApi)
 
-export const bus = createBus({
-  send: (message) => browser.runtime.sendMessage(message),
-  onMessage(cb) {
-    const listener = (message: unknown) => cb(message)
-    browser.runtime.onMessage.addListener(listener)
-    return () => browser.runtime.onMessage.removeListener(listener)
-  },
-})
+export const bus = createBus(createRuntimeTransport(browser.runtime))
 
 // runtime.sendMessage never reaches a content script. Anything answered inside the
 // x.com tab has to travel through tabs.sendMessage, so the background relays it.
