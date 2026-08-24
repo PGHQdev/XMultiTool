@@ -91,7 +91,7 @@ export interface Tool<S = Record<string, never>> {
   settings: import('./settings/schema').Schema<S>
   permissions?: string[]
   onInit?(ctx: ToolCtx<S>): void | Promise<void>
-  onPost?(post: Post, node: HTMLElement, ctx: ToolCtx<S>): Verdict | undefined
+  onPost?(post: Post, node: HTMLElement, ctx: ToolCtx<S>): Verdict | void
   onRoute?(route: Route, ctx: ToolCtx<S>): void
   onCommand?(cmd: Command, ctx: ToolCtx<S>): void
 }
