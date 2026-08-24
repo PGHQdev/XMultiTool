@@ -52,7 +52,7 @@ function setup(onPost?: (post: Post) => Verdict | void) {
     onVerdict: (node, verdict) => applied.push({ node, verdict }),
   })
   store = new PostStore({ onPair: (pair) => runtime.handlePair(pair) })
-  return { runtime, store, stats, applied }
+  return { runtime, store, stats, health, applied }
 }
 
 describe('createContentRuntime', () => {
@@ -74,7 +74,7 @@ describe('createContentRuntime', () => {
       url: '',
       payload: fixture,
     })
-    expect(store.size().records).toBe(2)
+    expect(store.size().records).toBe(3)
   })
 
   it('records unknown entry types in the stats', () => {
@@ -86,7 +86,7 @@ describe('createContentRuntime', () => {
       payload: fixture,
     })
     expect(stats.snapshot().unknownEntryTypes).toEqual([
-      'TimelineTimelineModule',
+      'TimelineTimelineCursor',
     ])
   })
 
@@ -117,6 +117,27 @@ describe('createContentRuntime', () => {
     store.addNode('1001', document.createElement('div'))
     store.addNode('2002', document.createElement('div'))
     expect(stats.snapshot().seen).toBe(2)
+  })
+
+  it('ignores a message whose op is not a string', () => {
+    const { runtime, health } = setup()
+    runtime.handleBridgeMessage({
+      tag: BRIDGE_TAG,
+      op: { toString: () => 'HomeTimeline' },
+      url: '',
+      payload: fixture,
+    })
+    expect(health.report()).toEqual([])
+  })
+
+  it('ignores a message that carries no url', () => {
+    const { runtime, health } = setup()
+    runtime.handleBridgeMessage({
+      tag: BRIDGE_TAG,
+      op: 'HomeTimeline',
+      payload: fixture,
+    })
+    expect(health.report()).toEqual([])
   })
 
   it('survives a payload it cannot read', () => {

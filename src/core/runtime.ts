@@ -14,8 +14,18 @@ export interface RuntimeDeps {
   onVerdict(node: HTMLElement, verdict: Verdict): void
 }
 
-const isBridgeMessage = (m: unknown): m is BridgeMessage =>
-  typeof m === 'object' && m !== null && (m as BridgeMessage).tag === BRIDGE_TAG
+// op and url reach a health id and a log line, and any script on the page can post
+// a message wearing the tag, so a non-string here would grow the health map without
+// bound or print "graphql:[object Object]".
+const isBridgeMessage = (m: unknown): m is BridgeMessage => {
+  if (typeof m !== 'object' || m === null) return false
+  const candidate = m as Partial<BridgeMessage>
+  return (
+    candidate.tag === BRIDGE_TAG &&
+    typeof candidate.op === 'string' &&
+    typeof candidate.url === 'string'
+  )
+}
 
 export function createContentRuntime(deps: RuntimeDeps) {
   return {

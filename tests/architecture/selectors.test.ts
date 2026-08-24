@@ -9,6 +9,8 @@ const FORBIDDEN = [
   /night_mode/,
   /\bHomeTimeline\b/,
   /\bTweetDetail\b/,
+  /\ba\[href/,
+  /\btime\[/,
 ]
 
 function sources(dir: string, out: string[] = []): string[] {
