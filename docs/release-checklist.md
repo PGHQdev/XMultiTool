@@ -12,7 +12,9 @@ in a logged-in profile before every release.
    DOM-sourced records, which this plan's adapter never does.
 4. Scroll 200 posts, then close and reopen the panel for a fresh reading (see step 2):
    `Posts seen` is higher than before, and the timeline does not stutter while you scroll.
-5. Open a post, go back, open a profile. Status keeps counting on each screen.
+5. Open a post, then close and reopen the panel for a fresh reading (see step 2). Go
+   back and do the same. Open a profile and do the same again: each fresh reading shows
+   a higher `Posts seen` count.
 6. Close and reopen the panel for a fresh reading, then check Settings → Selector
    health: every entry reads `ok`.
 7. Turn Diagnostics off, then reload the page. No cell carries a `data-xmt`
