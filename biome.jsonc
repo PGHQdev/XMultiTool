@@ -19,38 +19,12 @@
       "preset": "recommended",
       "suspicious": {
         // core Tool interface returns Verdict | void by design
-        "noConfusingVoidType": "off"
+        "noConfusingVoidType": "off",
+        // core stores tools of differing settings types in one collection, so the tool generic is erased at the registry boundary
+        "noExplicitAny": "off"
       }
     }
   },
-  "overrides": [
-    {
-      "includes": ["tests/**"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            // test code uses any for generic testing convenience
-            "noExplicitAny": "off"
-          },
-          "style": {
-            // test code may use non-null assertions after explicit precondition checks
-            "noNonNullAssertion": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["src/core/tools/registry.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            // registry uses Tool<any> to work with any tool type
-            "noExplicitAny": "off"
-          }
-        }
-      }
-    }
-  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "single",

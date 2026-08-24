@@ -95,7 +95,7 @@ describe('ToolRegistry', () => {
     for (let i = 0; i < 5; i += 1) r.runPost(post, node())
     expect(r.isDisabled('bad')).toBe(true)
     expect(onDisable).toHaveBeenCalledTimes(1)
-    expect(onDisable.mock.calls[0]![0]).toBe('bad')
+    expect(onDisable.mock.calls[0]?.[0]).toBe('bad')
   })
 
   it('stops calling a disabled tool', () => {
