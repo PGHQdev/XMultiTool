@@ -1,5 +1,9 @@
-import { browser } from 'wxt/browser'
-import { bus, requestActiveTab, storage } from '../src/core/browser-live'
+import {
+  bus,
+  requestActiveTab,
+  setSidePanelOpensOnActionClick,
+  storage,
+} from '../src/core/browser-live'
 import { exportConfig, importConfig } from '../src/core/settings/config-file'
 import { SettingsStore, type ThemeChoice } from '../src/core/settings/store'
 
@@ -7,14 +11,7 @@ export default defineBackground(() => {
   const settings = new SettingsStore(storage)
   const ready = settings.load()
 
-  const sidePanel = (
-    browser as unknown as {
-      sidePanel?: {
-        setPanelBehavior(o: { openPanelOnActionClick: boolean }): Promise<void>
-      }
-    }
-  ).sidePanel
-  void sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
+  void setSidePanelOpensOnActionClick()
 
   bus.handle('settings:get', async () => {
     await ready

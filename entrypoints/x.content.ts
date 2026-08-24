@@ -65,13 +65,7 @@ export default defineContentScript({
     })
 
     const startObserver = (): void => {
-      const root =
-        document.querySelector(X_SELECTORS.dom.primaryColumn) ?? document.body
-      observeCells(root, (id, node) => store.addNode(id, node))
-      health.record(
-        'dom:cell',
-        document.querySelectorAll(X_SELECTORS.dom.cell).length,
-      )
+      observeCells(document.body, (id, node) => store.addNode(id, node))
     }
 
     if (document.readyState === 'loading') {
@@ -84,7 +78,14 @@ export default defineContentScript({
 
     let lastPath = location.pathname
     registry.runRoute(parseRoute(lastPath))
+    // Body is never replaced, but x.com rebuilds the timeline route on client-side
+    // navigation, so the DOM selector's live health is sampled on every tick here
+    // rather than once at start.
     setInterval(() => {
+      health.record(
+        'dom:cell',
+        document.querySelectorAll(X_SELECTORS.dom.cell).length,
+      )
       if (location.pathname === lastPath) return
       lastPath = location.pathname
       registry.runRoute(parseRoute(lastPath))

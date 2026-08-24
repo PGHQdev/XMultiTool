@@ -56,3 +56,16 @@ export async function openSidePanel(tabId: number): Promise<void> {
   ).sidePanel
   await api?.open({ tabId })
 }
+
+export async function setSidePanelOpensOnActionClick(): Promise<void> {
+  // chrome.sidePanel has no Firefox counterpart; the Firefox build uses sidebar_action,
+  // which opens from the manifest and needs no call here.
+  const api = (
+    browser as unknown as {
+      sidePanel?: {
+        setPanelBehavior(o: { openPanelOnActionClick: boolean }): Promise<void>
+      }
+    }
+  ).sidePanel
+  await api?.setPanelBehavior({ openPanelOnActionClick: true })
+}
