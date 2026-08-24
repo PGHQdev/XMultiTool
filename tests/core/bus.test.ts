@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { type BusTransport, createBus } from '../../src/core/bus'
+import { type BusTransport, createBus, NOT_HANDLED } from '../../src/core/bus'
 
 function linkedTransports(): [BusTransport, BusTransport] {
   const handlers: Array<Array<(m: unknown) => Promise<unknown> | unknown>> = [
@@ -9,8 +9,11 @@ function linkedTransports(): [BusTransport, BusTransport] {
   const make = (self: number, other: number): BusTransport => ({
     async send(message) {
       for (const handler of handlers[other] ?? []) {
-        const result = await handler(message)
-        if (result !== undefined) return result
+        const result = handler(message)
+        // A real transport never turns NOT_HANDLED into a reply.
+        if (result === NOT_HANDLED) continue
+        const value = await result
+        if (value !== undefined) return value
       }
       return undefined
     },
@@ -97,6 +100,42 @@ describe('createBus', () => {
     const bus = createBus(b)
     bus.handle('x', () => 1)
     await expect(a.send({ random: true })).resolves.toBeUndefined()
+  })
+
+  it('answers NOT_HANDLED for anything this context did not register', () => {
+    let cb: ((message: unknown) => Promise<unknown> | unknown) | undefined
+    const bus = createBus({
+      send: async () => undefined,
+      onMessage(c) {
+        cb = c
+        return () => {}
+      },
+    })
+    bus.handle('mine', () => 1)
+    expect(
+      cb?.({ xmt: 'request', type: 'someone-elses', payload: undefined }),
+    ).toBe(NOT_HANDLED)
+    expect(cb?.({ xmt: 'event', type: 'settings:changed', payload: 1 })).toBe(
+      NOT_HANDLED,
+    )
+    expect(cb?.({ random: true })).toBe(NOT_HANDLED)
+  })
+
+  it('still runs event listeners on the callback that answers NOT_HANDLED', () => {
+    let cb: ((message: unknown) => Promise<unknown> | unknown) | undefined
+    const bus = createBus({
+      send: async () => undefined,
+      onMessage(c) {
+        cb = c
+        return () => {}
+      },
+    })
+    const seen = vi.fn()
+    bus.on('settings:changed', seen)
+    expect(cb?.({ xmt: 'event', type: 'settings:changed', payload: 7 })).toBe(
+      NOT_HANDLED,
+    )
+    expect(seen).toHaveBeenCalledWith(7)
   })
 
   it('throws when a second handler is registered for a live type', () => {

@@ -1,5 +1,12 @@
+// Chrome delivers one runtime.sendMessage to every extension context and keeps only
+// the first reply. A context that answered for a type it never registered would beat
+// the context that owns the type, so the callback returns this synchronously instead
+// and the transport leaves the reply channel to someone else.
+export const NOT_HANDLED = Symbol('xmt.notHandled')
+
 export interface BusTransport {
   send(message: unknown): Promise<unknown>
+  // A transport must not turn NOT_HANDLED into a reply.
   onMessage(cb: (message: unknown) => Promise<unknown> | unknown): () => void
 }
 
@@ -33,28 +40,30 @@ export function createBus(transport: BusTransport): Bus {
   const attach = (): void => {
     if (attached) return
     attached = true
-    transport.onMessage(async (message) => {
-      if (!isEnvelope(message)) return undefined
+    // Synchronous up to the point a handler is found: the transport has to decide
+    // whether to claim the reply channel before it returns.
+    transport.onMessage((message) => {
+      if (!isEnvelope(message)) return NOT_HANDLED
 
       if (message.xmt === 'event') {
         for (const listener of listeners.get(message.type) ?? [])
           listener(message.payload)
-        return undefined
+        return NOT_HANDLED
       }
 
       const handler = handlers.get(message.type)
-      if (!handler) return undefined
-      try {
-        return {
-          ok: true,
-          value: await handler(message.payload),
-        } satisfies Reply
-      } catch (error) {
-        return {
-          ok: false,
-          error: error instanceof Error ? error.message : String(error),
-        } satisfies Reply
-      }
+      if (!handler) return NOT_HANDLED
+
+      return Promise.resolve()
+        .then(() => handler(message.payload))
+        .then((value) => ({ ok: true, value }) satisfies Reply)
+        .catch(
+          (error) =>
+            ({
+              ok: false,
+              error: error instanceof Error ? error.message : String(error),
+            }) satisfies Reply,
+        )
     })
   }
 

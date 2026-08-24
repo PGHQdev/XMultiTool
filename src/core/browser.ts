@@ -1,4 +1,4 @@
-import type { BusTransport } from './bus'
+import { type BusTransport, NOT_HANDLED } from './bus'
 import type { StorageArea } from './settings/store'
 
 export interface StorageApi {
@@ -52,7 +52,12 @@ export function createRuntimeTransport(api: RuntimeMessagingApi): BusTransport {
         _sender: unknown,
         sendResponse: (response?: unknown) => void,
       ) => {
-        void Promise.resolve(cb(message)).then(sendResponse)
+        const result = cb(message)
+        // Every extension context receives the same broadcast. Returning false here
+        // leaves the channel to the context that owns the type; returning true would
+        // reply undefined first and the owner's reply would be dropped.
+        if (result === NOT_HANDLED) return false
+        void Promise.resolve(result).then(sendResponse)
         return true
       }
       api.onMessage.addListener(listener)
