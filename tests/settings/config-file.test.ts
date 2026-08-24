@@ -53,6 +53,52 @@ describe('importConfig', () => {
     expect(importConfig(text)).toEqual(settings)
   })
 
+  it('rejects a null settings object', () => {
+    expect(() =>
+      importConfig(
+        JSON.stringify({
+          app: 'xmultitool',
+          version: SETTINGS_VERSION,
+          settings: null,
+        }),
+      ),
+    ).toThrow(/not a valid xmultitool config/i)
+  })
+
+  it('rejects an array in place of the settings object', () => {
+    expect(() =>
+      importConfig(
+        JSON.stringify({
+          app: 'xmultitool',
+          version: SETTINGS_VERSION,
+          settings: [],
+        }),
+      ),
+    ).toThrow(/not a valid xmultitool config/i)
+  })
+
+  it('rejects a version written as a string', () => {
+    expect(() =>
+      importConfig(
+        JSON.stringify({ app: 'xmultitool', version: '5', settings }),
+      ),
+    ).toThrow(/not a valid xmultitool config/i)
+  })
+
+  it('rejects a missing version', () => {
+    expect(() =>
+      importConfig(JSON.stringify({ app: 'xmultitool', settings })),
+    ).toThrow(/not a valid xmultitool config/i)
+  })
+
+  it('rejects a fractional version', () => {
+    expect(() =>
+      importConfig(
+        JSON.stringify({ app: 'xmultitool', version: 1.5, settings }),
+      ),
+    ).toThrow(/not a valid xmultitool config/i)
+  })
+
   it('rejects a config written by a newer version', () => {
     const text = JSON.stringify({
       app: 'xmultitool',

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { runMigrations } from '../../src/core/settings/migrations'
 import type { StorageArea } from '../../src/core/settings/store'
 import {
   migrate,
@@ -58,10 +59,53 @@ describe('migrate', () => {
     })
   })
 
-  it('refuses a version from the future and starts fresh', () => {
+  it('refuses a version from the future instead of dropping the data', () => {
+    expect(() =>
+      migrate({ version: SETTINGS_VERSION + 99, enabled: { a: true } }),
+    ).toThrow(/newer version/i)
+  })
+})
+
+describe('runMigrations', () => {
+  const trail = (name: string) => (raw: Record<string, unknown>) => ({
+    ...raw,
+    seen: [...((raw.seen as string[]) ?? []), name],
+  })
+
+  it('does nothing when from equals to', () => {
+    const raw = { a: 1 }
+    const steps = { 1: trail('one') }
+    expect(runMigrations(raw, 1, 1, steps)).toBe(raw)
+  })
+
+  it('applies a step to the object', () => {
     expect(
-      migrate({ version: SETTINGS_VERSION + 99, enabled: { a: true } }).enabled,
-    ).toEqual({})
+      runMigrations({ a: 1 }, 1, 2, {
+        1: (raw) => ({ ...raw, b: 2 }),
+      }),
+    ).toEqual({ a: 1, b: 2 })
+  })
+
+  it('runs the steps in ascending order', () => {
+    const steps = { 1: trail('one'), 2: trail('two'), 3: trail('three') }
+    expect(runMigrations({}, 1, 4, steps).seen).toEqual(['one', 'two', 'three'])
+  })
+
+  it('skips a version with no step and keeps going', () => {
+    const steps = { 1: trail('one'), 3: trail('three') }
+    expect(runMigrations({}, 1, 4, steps).seen).toEqual(['one', 'three'])
+  })
+
+  it('returns the object every step produced', () => {
+    const steps = {
+      1: (raw: Record<string, unknown>) => ({ ...raw, a: 1 }),
+      2: (raw: Record<string, unknown>) => ({ ...raw, b: 2 }),
+    }
+    expect(runMigrations({ start: true }, 1, 3, steps)).toEqual({
+      start: true,
+      a: 1,
+      b: 2,
+    })
   })
 })
 
@@ -70,6 +114,23 @@ describe('SettingsStore', () => {
     const store = new SettingsStore(fakeArea())
     await store.load()
     expect(store.snapshot().version).toBe(SETTINGS_VERSION)
+  })
+
+  it('starts fresh when storage holds a version from the future', async () => {
+    const area = fakeArea({
+      [SETTINGS_KEY]: { version: SETTINGS_VERSION + 99, enabled: { a: true } },
+    })
+    const store = new SettingsStore(area)
+    await expect(store.load()).resolves.toEqual({
+      version: SETTINGS_VERSION,
+      enabled: {},
+      tools: {},
+      ui: { theme: 'auto' },
+    })
+    expect(area.data[SETTINGS_KEY]).toEqual({
+      version: SETTINGS_VERSION + 99,
+      enabled: { a: true },
+    })
   })
 
   it('writes and reads a tool enable flag', async () => {

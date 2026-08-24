@@ -29,13 +29,21 @@ function fresh(): StoredSettings {
   }
 }
 
-const isDict = (v: unknown): v is Record<string, unknown> =>
+export const isDict = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
 
 export function migrate(raw: unknown): StoredSettings {
   if (!isDict(raw)) return fresh()
   const version = typeof raw.version === 'number' ? raw.version : 0
-  if (version > SETTINGS_VERSION) return fresh()
+  // importConfig() already refuses a future version, so migrate() refuses it
+  // too: no migration can read a shape it predates, and returning defaults
+  // here would destroy real settings without telling the caller. Each caller
+  // decides what to do; load() below chooses to start fresh.
+  if (version > SETTINGS_VERSION) {
+    throw new Error(
+      'These settings come from a newer version of XMultiTool. Update the extension first.',
+    )
+  }
 
   const migrated = runMigrations(raw, version, SETTINGS_VERSION)
   const enabled = isDict(migrated.enabled) ? migrated.enabled : {}
@@ -64,7 +72,14 @@ export class SettingsStore {
   constructor(private readonly area: StorageArea) {}
 
   async load(): Promise<StoredSettings> {
-    this.state = migrate(await this.area.get(SETTINGS_KEY))
+    const raw = await this.area.get(SETTINGS_KEY)
+    try {
+      this.state = migrate(raw)
+    } catch {
+      // A downgraded extension reads storage a newer build wrote. The panel
+      // must still open, so start fresh; nothing is written until a change.
+      this.state = fresh()
+    }
     return this.state
   }
 
