@@ -6,6 +6,11 @@ export interface RegistryOptions {
   isEnabled(id: string): boolean
   contextFor(id: string): ToolCtx<any>
   onDisable(id: string, error: unknown): void
+  // Injected so the registry stays free of the live browser APIs. The content script
+  // passes the live check; permissions.request needs a user gesture, so the panel asks
+  // for them at the moment the user turns a tool on. Without one every declared
+  // permission counts as already granted.
+  hasPermissions?(names: string[]): Promise<boolean>
   maxFailures?: number
 }
 
@@ -13,13 +18,16 @@ export class ToolRegistry {
   private readonly failureCount = new Map<string, number>()
   private readonly disabled = new Set<string>()
   private readonly maxFailures: number
+  private readonly hasPermissions: (names: string[]) => Promise<boolean>
 
   constructor(private readonly options: RegistryOptions) {
     this.maxFailures = options.maxFailures ?? 3
+    this.hasPermissions = options.hasPermissions ?? (async () => true)
   }
 
   async init(): Promise<void> {
     for (const tool of this.active()) {
+      if (!(await this.grant(tool))) continue
       try {
         await tool.onInit?.(this.options.contextFor(tool.id))
       } catch (error) {
@@ -75,12 +83,32 @@ export class ToolRegistry {
     }
   }
 
+  // A missing permission does not appear by trying again, so it skips the failure
+  // budget and disables the tool on the first answer.
+  private async grant(tool: Tool<any>): Promise<boolean> {
+    const names = tool.permissions
+    if (!names?.length) return true
+    try {
+      if (await this.hasPermissions(names)) return true
+      this.disable(
+        tool.id,
+        new Error(`xmt: "${tool.id}" needs ${names.join(', ')}`),
+      )
+    } catch (error) {
+      this.disable(tool.id, error)
+    }
+    return false
+  }
+
   private recordFailure(id: string, error: unknown): void {
     const count = this.failures(id) + 1
     this.failureCount.set(id, count)
-    if (count >= this.maxFailures && !this.disabled.has(id)) {
-      this.disabled.add(id)
-      this.options.onDisable(id, error)
-    }
+    if (count >= this.maxFailures) this.disable(id, error)
+  }
+
+  private disable(id: string, error: unknown): void {
+    if (this.disabled.has(id)) return
+    this.disabled.add(id)
+    this.options.onDisable(id, error)
   }
 }

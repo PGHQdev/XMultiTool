@@ -40,8 +40,16 @@ export async function requestActiveTab<T>(
   return reply.value as T
 }
 
+// permissions.request only prompts from a user gesture in an extension page, so the
+// panel asks when the user turns a tool on and the content script only checks.
 export async function requestPermissions(names: string[]): Promise<boolean> {
   return browser.permissions.request({
+    permissions: names as Browser.runtime.ManifestPermission[],
+  })
+}
+
+export async function hasPermissions(names: string[]): Promise<boolean> {
+  return browser.permissions.contains({
     permissions: names as Browser.runtime.ManifestPermission[],
   })
 }

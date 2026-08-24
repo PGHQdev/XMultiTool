@@ -134,6 +134,109 @@ describe('ToolRegistry', () => {
     expect(r.failures('bad')).toBe(2)
   })
 
+  it('checks the permissions a tool declares before onInit', async () => {
+    const order: string[] = []
+    const hasPermissions = vi.fn(async () => {
+      order.push('check')
+      return true
+    })
+    const r = registry(
+      [
+        {
+          id: 'p',
+          name: 'p',
+          description: '',
+          module: 'core',
+          settings: {} as any,
+          permissions: ['downloads'],
+          onInit: () => {
+            order.push('init')
+          },
+        },
+      ],
+      { hasPermissions },
+    )
+    await r.init()
+    expect(hasPermissions).toHaveBeenCalledWith(['downloads'])
+    expect(order).toEqual(['check', 'init'])
+  })
+
+  it('asks for nothing when a tool declares no permission', async () => {
+    const hasPermissions = vi.fn(async () => true)
+    const r = registry([tool('a', () => {})], { hasPermissions })
+    await r.init()
+    expect(hasPermissions).not.toHaveBeenCalled()
+  })
+
+  it('disables and reports a tool whose permission is denied', async () => {
+    const onDisable = vi.fn()
+    const onInit = vi.fn()
+    const r = registry(
+      [
+        {
+          id: 'p',
+          name: 'p',
+          description: '',
+          module: 'core',
+          settings: {} as any,
+          permissions: ['downloads'],
+          onInit,
+        },
+      ],
+      { onDisable, hasPermissions: async () => false },
+    )
+    await r.init()
+    expect(onInit).not.toHaveBeenCalled()
+    expect(r.isDisabled('p')).toBe(true)
+    expect(onDisable).toHaveBeenCalledTimes(1)
+    expect(onDisable.mock.calls[0]?.[0]).toBe('p')
+  })
+
+  it('disables a tool when the permission check throws', async () => {
+    const onDisable = vi.fn()
+    const r = registry(
+      [
+        {
+          id: 'p',
+          name: 'p',
+          description: '',
+          module: 'core',
+          settings: {} as any,
+          permissions: ['downloads'],
+          onPost: () => ({ action: 'hide', reason: 'p' }),
+        },
+      ],
+      {
+        onDisable,
+        hasPermissions: async () => {
+          throw new Error('no prompt')
+        },
+      },
+    )
+    await r.init()
+    expect(r.isDisabled('p')).toBe(true)
+    expect(onDisable.mock.calls[0]?.[1]).toBeInstanceOf(Error)
+    expect(r.runPost(post, node())).toEqual({ action: 'pass' })
+  })
+
+  it('treats a declared permission as granted when no requester is injected', async () => {
+    const onInit = vi.fn()
+    const r = registry([
+      {
+        id: 'p',
+        name: 'p',
+        description: '',
+        module: 'core',
+        settings: {} as any,
+        permissions: ['downloads'],
+        onInit,
+      },
+    ])
+    await r.init()
+    expect(onInit).toHaveBeenCalledTimes(1)
+    expect(r.isDisabled('p')).toBe(false)
+  })
+
   it('contains a throw in onInit', async () => {
     const r = registry([
       {
