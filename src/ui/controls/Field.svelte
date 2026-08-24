@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { Field } from '../../core/settings/schema'
 import { controlFor } from './control-for'
+import { restoreControl } from './restore-control'
 
 let {
   field,
@@ -29,7 +30,7 @@ const control = $derived(controlFor(field))
         const target = e.currentTarget
         const previous = value === true
         const ok = await onchange(target.checked)
-        if (!ok) target.checked = previous
+        if (!ok) restoreControl(target, previous)
       }}
     />
   {:else if control === 'number'}
@@ -40,7 +41,7 @@ const control = $derived(controlFor(field))
         const target = e.currentTarget
         const previous = value as number
         const ok = await onchange(Number(target.value))
-        if (!ok) target.value = String(previous)
+        if (!ok) restoreControl(target, String(previous))
       }}
     />
   {:else if control === 'text'}
@@ -51,7 +52,7 @@ const control = $derived(controlFor(field))
         const target = e.currentTarget
         const previous = value as string
         const ok = await onchange(target.value)
-        if (!ok) target.value = previous
+        if (!ok) restoreControl(target, previous)
       }}
     />
   {:else if control === 'select' && field.type === 'enum'}
@@ -61,7 +62,7 @@ const control = $derived(controlFor(field))
         const target = e.currentTarget
         const previous = value as string
         const ok = await onchange(target.value)
-        if (!ok) target.value = previous
+        if (!ok) restoreControl(target, previous)
       }}
     >
       {#each field.options as option (option.value)}
@@ -81,7 +82,7 @@ const control = $derived(controlFor(field))
             .map((s) => s.trim())
             .filter(Boolean),
         )
-        if (!ok) target.value = previous
+        if (!ok) restoreControl(target, previous)
       }}
     ></textarea>
   {/if}

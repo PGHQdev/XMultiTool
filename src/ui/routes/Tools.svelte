@@ -2,6 +2,7 @@
 import { coerce } from '../../core/settings/schema'
 import { CORE_TOOLS } from '../../core/tools/index'
 import Field from '../controls/Field.svelte'
+import { restoreControl } from '../controls/restore-control'
 import { patchTool, setEnabled, ui } from '../state.svelte'
 
 const modules = ['core', 'reading', 'export', 'author'] as const
@@ -28,7 +29,7 @@ const modules = ['core', 'reading', 'export', 'author'] as const
               const target = e.currentTarget
               const previous = enabled
               const ok = await setEnabled(tool.id, target.checked)
-              if (!ok) target.checked = previous
+              if (!ok) restoreControl(target, previous)
             }}
           />
         </header>

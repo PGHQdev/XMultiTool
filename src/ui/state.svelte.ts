@@ -1,20 +1,27 @@
 import type { HealthEntry } from '../core/adapter/health'
-import { bus } from '../core/browser-live'
+import { bus, requestPermissions } from '../core/browser-live'
 import type { StoredSettings, ThemeChoice } from '../core/settings/store'
 import type { Stats } from '../core/stats'
+import { CORE_TOOLS } from '../core/tools/index'
+import type { XTheme } from '../core/ui/theme'
 
 export const ui = $state({
   settings: null as StoredSettings | null,
   stats: null as Stats | null,
   health: [] as HealthEntry[],
+  detectedTheme: null as XTheme | null,
   error: null as string | null,
 })
 
-async function safe<T>(run: () => Promise<T>): Promise<T | null> {
+async function safe<T>(
+  run: () => Promise<T>,
+  options?: { quiet?: boolean },
+): Promise<T | null> {
   try {
     return await run()
   } catch (error) {
-    ui.error = error instanceof Error ? error.message : String(error)
+    if (!options?.quiet)
+      ui.error = error instanceof Error ? error.message : String(error)
     return null
   }
 }
@@ -25,7 +32,7 @@ async function safe<T>(run: () => Promise<T>): Promise<T | null> {
 // It does not by itself restore a control's own DOM state after a failed write -
 // checked={...}/value={...} diff against Svelte's own last-written cache, which already
 // equals the unchanged data, so callers restore the control imperatively instead; see
-// Field.svelte, Tools.svelte and Settings.svelte.
+// restoreControl in controls/restore-control.ts.
 function applySettingsReply(next: StoredSettings | null): void {
   if (next) {
     ui.settings = next
@@ -42,12 +49,37 @@ export async function loadAll(): Promise<void> {
   ui.health =
     (await safe(() => bus.request<HealthEntry[]>('health:get', undefined))) ??
     []
+  // The reply travels through the worker into the x.com tab, so it rejects whenever no
+  // such tab is open. That is the normal state of the panel, not a failure to report.
+  ui.detectedTheme = await safe(
+    () => bus.request<XTheme | null>('theme:get', undefined),
+    { quiet: true },
+  )
 }
+
+// The worker broadcasts every settings write it makes. The options page and the side
+// panel can be open at the same time, so a write in one surface updates the other.
+bus.on('settings:changed', (next: StoredSettings) => {
+  ui.settings = next
+})
 
 // Each returns whether the write landed, so the control that triggered it can restore
 // its own DOM state on failure instead of showing the user's unsaved click.
 
+// permissions.request prompts only from the user gesture that reached this call, so it
+// runs before the first await and the panel is the one surface that can ask.
+async function granted(id: string): Promise<boolean> {
+  const names = CORE_TOOLS.find((t) => t.id === id)?.permissions
+  if (!names?.length) return true
+  const answer = await safe(() => requestPermissions(names))
+  if (answer) return true
+  if (answer === false)
+    ui.error = `XMultiTool needs ${names.join(', ')} to turn this on.`
+  return false
+}
+
 export async function setEnabled(id: string, on: boolean): Promise<boolean> {
+  if (on && !(await granted(id))) return false
   const next = await safe(() =>
     bus.request<StoredSettings>('settings:setEnabled', { id, on }),
   )
@@ -71,5 +103,25 @@ export async function setTheme(theme: ThemeChoice): Promise<boolean> {
     bus.request<StoredSettings>('settings:setTheme', { theme }),
   )
   applySettingsReply(next)
+  return next !== null
+}
+
+// Null means the export failed; the caller has nothing to hand the user.
+export async function exportConfig(): Promise<string | null> {
+  const text = await safe(() =>
+    bus.request<string>('config:export', {
+      exportedAt: new Date().toISOString(),
+    }),
+  )
+  if (text !== null) ui.error = null
+  return text
+}
+
+export async function importConfig(text: string): Promise<boolean> {
+  const next = await safe(() =>
+    bus.request<StoredSettings>('config:import', { text }),
+  )
+  applySettingsReply(next)
+  if (next) ui.error = null
   return next !== null
 }

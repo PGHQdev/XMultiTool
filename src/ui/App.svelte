@@ -15,7 +15,11 @@ $effect(() => {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   applyTheme(
     document.documentElement,
-    resolveTheme(ui.settings?.ui.theme ?? 'auto', null, prefersDark),
+    resolveTheme(
+      ui.settings?.ui.theme ?? 'auto',
+      ui.detectedTheme,
+      prefersDark,
+    ),
   )
 })
 </script>

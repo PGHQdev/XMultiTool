@@ -1,29 +1,30 @@
 <script lang="ts">
-import { bus } from '../../core/browser-live'
 import type { ThemeChoice } from '../../core/settings/store'
-import { loadAll, setTheme, ui } from '../state.svelte'
+import { restoreControl } from '../controls/restore-control'
+import { exportConfig, importConfig, setTheme, ui } from '../state.svelte'
 
 const themes: ThemeChoice[] = ['auto', 'light', 'dim', 'lights-out']
 let importText = $state('')
 
-async function exportConfig() {
-  const text = await bus.request<string>('config:export', {
-    exportedAt: new Date().toISOString(),
-  })
+async function downloadConfig() {
+  const text = await exportConfig()
+  if (text === null) return
   const url = URL.createObjectURL(
     new Blob([text], { type: 'application/json' }),
   )
   const link = document.createElement('a')
   link.href = url
   link.download = 'xmultitool-config.json'
+  // Firefox follows a download click only on an anchor that is in the document, and
+  // revoking the URL in the same tick can cancel the download before it starts.
+  document.body.append(link)
   link.click()
-  URL.revokeObjectURL(url)
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
-async function importConfig() {
-  await bus.request('config:import', { text: importText })
-  importText = ''
-  await loadAll()
+async function submitImport() {
+  if (await importConfig(importText)) importText = ''
 }
 </script>
 
@@ -37,7 +38,7 @@ async function importConfig() {
         const target = e.currentTarget
         const previous = ui.settings?.ui.theme ?? 'auto'
         const ok = await setTheme(target.value as ThemeChoice)
-        if (!ok) target.value = previous
+        if (!ok) restoreControl(target, previous)
       }}
     >
       {#each themes as theme (theme)}<option value={theme}>{theme}</option>{/each}
@@ -45,10 +46,10 @@ async function importConfig() {
   </div>
 
   <h2>Config</h2>
-  <div class="row"><button onclick={exportConfig}>Export config</button></div>
+  <div class="row"><button onclick={downloadConfig}>Export config</button></div>
   <div class="row">
     <textarea rows="4" bind:value={importText} placeholder="Paste a config file"></textarea>
-    <button onclick={importConfig} disabled={!importText}>Import</button>
+    <button onclick={submitImport} disabled={!importText}>Import</button>
   </div>
 
   <h2>Selector health</h2>
