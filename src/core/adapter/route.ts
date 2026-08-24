@@ -1,4 +1,4 @@
-import type { Route } from '../types'
+import type { Route, RouteKind } from '../types'
 
 const RESERVED = new Set([
   'home',
@@ -35,4 +35,19 @@ export function parseRoute(pathname: string): Route {
     return { kind: 'profile', params: { handle: first } }
   }
   return { kind: 'other', params: {} }
+}
+
+const CELL_ROUTES = new Set<RouteKind>([
+  'home',
+  'profile',
+  'post',
+  'search',
+  'bookmarks',
+  'list',
+])
+
+// Messages, notifications and settings render no timeline, so a cell count of 0
+// there is the truth about the page, not a broken selector.
+export function rendersCells(route: Route): boolean {
+  return CELL_ROUTES.has(route.kind)
 }

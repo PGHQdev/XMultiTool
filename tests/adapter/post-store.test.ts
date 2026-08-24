@@ -105,3 +105,119 @@ describe('PostStore', () => {
     expect(pairs).toHaveLength(1)
   })
 })
+
+describe('PostStore node recycling', () => {
+  it('drops a node from its former id so a late record cannot misfire', () => {
+    const pairs: PostPair[] = []
+    const store = new PostStore({ onPair: (p) => pairs.push(p) })
+    const node = document.createElement('div')
+    store.addNode('old', node)
+    store.addNode('new', node)
+    store.addRecord(makePost('old'))
+    expect(pairs).toHaveLength(0)
+    store.addRecord(makePost('new'))
+    expect(pairs).toHaveLength(1)
+    expect(pairs[0]?.post.id).toBe('new')
+  })
+})
+
+function fakeTimer() {
+  const queue = new Map<number, () => void>()
+  let next = 1
+  return {
+    pending: () => queue.size,
+    flush(): void {
+      const due = [...queue.values()]
+      queue.clear()
+      for (const run of due) run()
+    },
+    setTimer(run: () => void): number {
+      const handle = next++
+      queue.set(handle, run)
+      return handle
+    },
+    clearTimer(handle: number): void {
+      queue.delete(handle)
+    },
+  }
+}
+
+describe('PostStore dom fallback', () => {
+  let pairs: PostPair[]
+  let timer: ReturnType<typeof fakeTimer>
+  let built: string[]
+  let store: PostStore
+
+  beforeEach(() => {
+    pairs = []
+    built = []
+    timer = fakeTimer()
+    store = new PostStore({
+      onPair: (p) => pairs.push(p),
+      domFallback: {
+        build: (id) => {
+          built.push(id)
+          return { ...makePost(id), source: 'dom' }
+        },
+        afterMs: 1_500,
+        setTimer: (run) => timer.setTimer(run),
+        clearTimer: (handle) => timer.clearTimer(handle),
+      },
+    })
+  })
+
+  it('pairs a cell that never receives a record', () => {
+    const node = document.createElement('div')
+    store.addNode('1', node)
+    expect(pairs).toHaveLength(0)
+    timer.flush()
+    expect(pairs).toEqual([{ post: { ...makePost('1'), source: 'dom' }, node }])
+  })
+
+  it('does not schedule a fallback when the record arrived first', () => {
+    store.addRecord(makePost('2'))
+    store.addNode('2', document.createElement('div'))
+    expect(timer.pending()).toBe(0)
+    expect(pairs).toHaveLength(1)
+    expect(pairs[0]?.post.source).toBe('graphql')
+  })
+
+  it('cancels the fallback when the record arrives inside the grace period', () => {
+    store.addNode('3', document.createElement('div'))
+    store.addRecord(makePost('3'))
+    timer.flush()
+    expect(built).toEqual([])
+    expect(pairs).toHaveLength(1)
+    expect(pairs[0]?.post.source).toBe('graphql')
+  })
+
+  it('does not pair a cell twice through the fallback', () => {
+    store.addNode('4', document.createElement('div'))
+    timer.flush()
+    timer.flush()
+    expect(pairs).toHaveLength(1)
+  })
+
+  it('does not build for a node the timeline has already replaced', () => {
+    store.addNode('5', document.createElement('div'))
+    store.addNode('5', document.createElement('div'))
+    timer.flush()
+    expect(built).toEqual(['5'])
+    expect(pairs).toHaveLength(1)
+  })
+
+  it('emits nothing when the markup yields no record', () => {
+    const silent = new PostStore({
+      onPair: (p) => pairs.push(p),
+      domFallback: {
+        build: () => null,
+        afterMs: 1_500,
+        setTimer: (run) => timer.setTimer(run),
+        clearTimer: (handle) => timer.clearTimer(handle),
+      },
+    })
+    silent.addNode('6', document.createElement('div'))
+    timer.flush()
+    expect(pairs).toHaveLength(0)
+  })
+})

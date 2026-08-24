@@ -17,6 +17,17 @@ export const X_SELECTORS = Object.freeze({
     tweet: 'article[data-testid="tweet"]',
     statusLink: 'a[href*="/status/"]',
     postMenuButton: '[data-testid="caret"]',
+    text: '[data-testid="tweetText"]',
+    userName: '[data-testid="User-Name"]',
+    timestamp: 'time[datetime]',
+    replyButton: '[data-testid="reply"]',
+    // X swaps the testid once the viewer has acted, so a post the viewer already
+    // reposted or liked carries the undo testid and no count would be read from it.
+    repostButton: '[data-testid="retweet"],[data-testid="unretweet"]',
+    likeButton: '[data-testid="like"],[data-testid="unlike"]',
+    analyticsLink: 'a[href$="/analytics"]',
+    photo: '[data-testid="tweetPhoto"]',
+    video: '[data-testid="videoPlayer"]',
   }),
   cookies: Object.freeze({ theme: 'night_mode' }),
 })
