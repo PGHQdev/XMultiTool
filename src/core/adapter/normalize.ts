@@ -115,7 +115,11 @@ export function normalizeTweetResult(
       repost: numberOr(legacy.retweet_count, 0),
       like: numberOr(legacy.favorite_count, 0),
       quote: numberOr(legacy.quote_count, 0),
-      view: typeof viewCount === 'string' ? Number(viewCount) : null,
+      view: (() => {
+        const parsed =
+          typeof viewCount === 'string' ? Number(viewCount) : Number.NaN
+        return Number.isFinite(parsed) ? parsed : null
+      })(),
     },
     media: mediaOf(legacy),
     links: linksOf(legacy),
@@ -125,12 +129,14 @@ export function normalizeTweetResult(
       typeof legacy.quoted_status_id_str === 'string'
         ? legacy.quoted_status_id_str
         : null,
-    repostOfId:
-      (get(legacy, [
+    repostOfId: (() => {
+      const value = get(legacy, [
         'retweeted_status_result',
         'result',
         'rest_id',
-      ]) as string) ?? null,
+      ])
+      return typeof value === 'string' ? value : null
+    })(),
   }
 }
 

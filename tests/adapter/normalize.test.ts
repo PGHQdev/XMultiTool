@@ -1,6 +1,9 @@
 // tests/adapter/normalize.test.ts
 import { describe, expect, it } from 'vitest'
-import { normalizeTimeline } from '../../src/core/adapter/normalize'
+import {
+  normalizeTimeline,
+  normalizeTweetResult,
+} from '../../src/core/adapter/normalize'
 import fixture from '../fixtures/home-timeline.json'
 
 describe('normalizeTimeline', () => {
@@ -64,5 +67,30 @@ describe('normalizeTimeline', () => {
 
   it('defaults missing view counts to null', () => {
     expect(result.posts[1]?.counts.view).toBeNull()
+  })
+
+  it('does not leak a non-string retweeted rest_id into repostOfId', () => {
+    const post = normalizeTweetResult(
+      {
+        rest_id: '9001',
+        legacy: {
+          retweeted_status_result: { result: { rest_id: 12345 } },
+        },
+      },
+      false,
+    )
+    expect(post?.repostOfId).toBeNull()
+  })
+
+  it('does not produce NaN when the view count is not numeric', () => {
+    const post = normalizeTweetResult(
+      {
+        rest_id: '9002',
+        legacy: {},
+        views: { count: 'not-a-number' },
+      },
+      false,
+    )
+    expect(post?.counts.view).toBeNull()
   })
 })
