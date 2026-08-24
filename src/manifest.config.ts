@@ -3,7 +3,7 @@ export const HOST_MATCH = 'https://x.com/*'
 export const manifest = {
   name: 'XMultiTool',
   description: 'Reading control, data export and author tools for X.',
-  permissions: ['storage', 'sidePanel', 'tabs', 'scripting'] as string[],
+  permissions: ['storage', 'sidePanel', 'tabs'] as string[],
   host_permissions: [HOST_MATCH],
   minimum_chrome_version: '114',
   side_panel: { default_path: 'sidepanel.html' },

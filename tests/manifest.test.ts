@@ -8,7 +8,6 @@ describe('manifest', () => {
 
   it('requests the minimum permissions', () => {
     expect(manifest.permissions.sort()).toEqual([
-      'scripting',
       'sidePanel',
       'storage',
       'tabs',

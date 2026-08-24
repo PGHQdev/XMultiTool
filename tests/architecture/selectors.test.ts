@@ -23,11 +23,13 @@ function sources(dir: string, out: string[] = []): string[] {
 describe('selector registry', () => {
   it('holds every X-specific string in the project', () => {
     const offenders: string[] = []
-    for (const file of sources('src')) {
-      if (file.replace(/\\/g, '/') === REGISTRY) continue
-      const text = readFileSync(file, 'utf8')
-      for (const pattern of FORBIDDEN) {
-        if (pattern.test(text)) offenders.push(`${file} matches ${pattern}`)
+    for (const dir of ['src', 'entrypoints']) {
+      for (const file of sources(dir)) {
+        if (file.replace(/\\/g, '/') === REGISTRY) continue
+        const text = readFileSync(file, 'utf8')
+        for (const pattern of FORBIDDEN) {
+          if (pattern.test(text)) offenders.push(`${file} matches ${pattern}`)
+        }
       }
     }
     expect(offenders).toEqual([])
