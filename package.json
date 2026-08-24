@@ -20,14 +20,25 @@
     "e2e": "playwright test"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.10",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/vite": "^4.3.3",
     "@tsconfig/svelte": "^5.0.8",
     "@wxt-dev/module-svelte": "^2.0.4",
+    "happy-dom": "^20.11.6",
     "svelte": "^5.53.7",
     "svelte-check": "^4.4.4",
+    "tailwindcss": "^4.3.3",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "vite": "^8.1.5",
+    "vitest": "^4.1.11",
     "web-ext": "^10.5.0",
     "wxt": "^0.21.3"
+  },
+  "dependencies": {
+    "bits-ui": "^2.19.0",
+    "idb": "^8.0.3",
+    "phosphor-svelte": "^3.1.0"
   }
 }
