@@ -16,6 +16,8 @@ logs
 stats.html
 stats-*.json
 web-ext.config.ts
+test-results/
+playwright-report/
 
 # Editor directories and files
 .vscode/*

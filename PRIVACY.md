@@ -14,5 +14,5 @@ Permissions and their reasons:
 |---|---|
 | `storage` | Keeps settings in the local profile |
 | `sidePanel` | Opens the side panel |
-| `tabs` | Reads which tab the side panel is showing |
+| `tabs` | Finds the active tab and sends it a message, so the side panel can read counters the content script holds |
 | `https://x.com/*` | The only site the extension runs on |

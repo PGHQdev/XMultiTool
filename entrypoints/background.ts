@@ -21,6 +21,7 @@ export default defineBackground(() => {
   // Relays into the x.com tab, where the content script holds these counters.
   bus.handle('stats:get', () => requestActiveTab('stats:get', undefined))
   bus.handle('health:get', () => requestActiveTab('health:get', undefined))
+  bus.handle('theme:get', () => requestActiveTab('theme:get', undefined))
 
   bus.handle(
     'settings:setEnabled',
