@@ -1,0 +1,57 @@
+<script lang="ts">
+import type { Field } from '../../core/settings/schema'
+import { controlFor } from './control-for'
+
+let {
+  field,
+  value,
+  onchange,
+}: {
+  field: Field
+  value: unknown
+  onchange: (next: unknown) => void
+} = $props()
+
+const control = controlFor(field)
+</script>
+
+<label class="row">
+  <span class="labels">
+    <span class="label">{field.label}</span>
+    {#if field.help}<span class="help">{field.help}</span>{/if}
+  </span>
+
+  {#if control === 'switch'}
+    <input type="checkbox" checked={value === true} onchange={(e) => onchange(e.currentTarget.checked)} />
+  {:else if control === 'number'}
+    <input type="number" value={value as number} onchange={(e) => onchange(Number(e.currentTarget.value))} />
+  {:else if control === 'text'}
+    <input type="text" value={value as string} onchange={(e) => onchange(e.currentTarget.value)} />
+  {:else if control === 'select' && field.type === 'enum'}
+    <select value={value as string} onchange={(e) => onchange(e.currentTarget.value)}>
+      {#each field.options as option (option.value)}
+        <option value={option.value}>{option.label}</option>
+      {/each}
+    </select>
+  {:else if control === 'list'}
+    <textarea
+      rows="4"
+      value={(value as string[] | undefined)?.join('\n') ?? ''}
+      onchange={(e) => onchange(e.currentTarget.value.split('\n').map((s) => s.trim()).filter(Boolean))}
+    ></textarea>
+  {/if}
+</label>
+
+<style>
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--xmt-border);
+  }
+  .labels { display: flex; flex-direction: column; gap: 2px; }
+  .label { font-weight: 700; }
+  .help { color: var(--xmt-text-muted); font-size: var(--xmt-text-size-small); }
+</style>
