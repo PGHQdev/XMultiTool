@@ -77,8 +77,14 @@ export function createBus(transport: BusTransport): Bus {
       handlers.set(type, handler as (payload: unknown) => unknown)
       return () => handlers.delete(type)
     },
+    // Chrome rejects runtime.sendMessage whenever no other context is listening,
+    // which is the normal state any time every extension page besides the sender
+    // is closed. A broadcast with no receiver is not a failure, so emit resolves
+    // either way; the request path above still surfaces its own errors.
     async emit(type, payload) {
-      await transport.send({ xmt: 'event', type, payload } satisfies Envelope)
+      await transport
+        .send({ xmt: 'event', type, payload } satisfies Envelope)
+        .catch(() => undefined)
     },
     on(type, listener) {
       attach()

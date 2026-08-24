@@ -73,6 +73,25 @@ describe('createBus', () => {
     expect(second).toHaveBeenCalledWith({ version: 1 })
   })
 
+  it('resolves emit even when nothing is listening, but still sends the envelope', async () => {
+    const send = vi
+      .fn()
+      .mockRejectedValue(
+        new Error(
+          'Could not establish connection. Receiving end does not exist.',
+        ),
+      )
+    const transport: BusTransport = { send, onMessage: () => () => {} }
+    await expect(
+      createBus(transport).emit('settings:changed', { version: 1 }),
+    ).resolves.toBeUndefined()
+    expect(send).toHaveBeenCalledWith({
+      xmt: 'event',
+      type: 'settings:changed',
+      payload: { version: 1 },
+    })
+  })
+
   it('ignores a message that is not a bus envelope', async () => {
     const [a, b] = linkedTransports()
     const bus = createBus(b)
