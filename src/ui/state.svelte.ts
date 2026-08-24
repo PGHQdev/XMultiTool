@@ -21,8 +21,11 @@ async function safe<T>(run: () => Promise<T>): Promise<T | null> {
 
 // A null reply means the write failed. Assigning the fetched value keeps the panel in
 // sync with the worker; on failure, replacing ui.settings with a shallow copy of itself
-// re-triggers the controls bound to it (checked/value are one-way) so a control the user
-// just touched snaps back to the stored value instead of showing the unsaved click.
+// re-triggers the effects reading it, which keeps any genuinely changed value in sync.
+// It does not by itself restore a control's own DOM state after a failed write -
+// checked={...}/value={...} diff against Svelte's own last-written cache, which already
+// equals the unchanged data, so callers restore the control imperatively instead; see
+// Field.svelte, Tools.svelte and Settings.svelte.
 function applySettingsReply(next: StoredSettings | null): void {
   if (next) {
     ui.settings = next
@@ -41,29 +44,32 @@ export async function loadAll(): Promise<void> {
     []
 }
 
-export async function setEnabled(id: string, on: boolean): Promise<void> {
-  applySettingsReply(
-    await safe(() =>
-      bus.request<StoredSettings>('settings:setEnabled', { id, on }),
-    ),
+// Each returns whether the write landed, so the control that triggered it can restore
+// its own DOM state on failure instead of showing the user's unsaved click.
+
+export async function setEnabled(id: string, on: boolean): Promise<boolean> {
+  const next = await safe(() =>
+    bus.request<StoredSettings>('settings:setEnabled', { id, on }),
   )
+  applySettingsReply(next)
+  return next !== null
 }
 
 export async function patchTool(
   id: string,
   patch: Record<string, unknown>,
-): Promise<void> {
-  applySettingsReply(
-    await safe(() =>
-      bus.request<StoredSettings>('settings:patchTool', { id, patch }),
-    ),
+): Promise<boolean> {
+  const next = await safe(() =>
+    bus.request<StoredSettings>('settings:patchTool', { id, patch }),
   )
+  applySettingsReply(next)
+  return next !== null
 }
 
-export async function setTheme(theme: ThemeChoice): Promise<void> {
-  applySettingsReply(
-    await safe(() =>
-      bus.request<StoredSettings>('settings:setTheme', { theme }),
-    ),
+export async function setTheme(theme: ThemeChoice): Promise<boolean> {
+  const next = await safe(() =>
+    bus.request<StoredSettings>('settings:setTheme', { theme }),
   )
+  applySettingsReply(next)
+  return next !== null
 }

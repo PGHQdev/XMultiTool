@@ -20,7 +20,17 @@ const modules = ['core', 'reading', 'export', 'author'] as const
             <span class="label">{tool.name}</span>
             <span class="help">{tool.description}</span>
           </span>
-          <input type="checkbox" checked={enabled} aria-label={tool.name} onchange={(e) => setEnabled(tool.id, e.currentTarget.checked)} />
+          <input
+            type="checkbox"
+            checked={enabled}
+            aria-label={tool.name}
+            onchange={async (e) => {
+              const target = e.currentTarget
+              const previous = enabled
+              const ok = await setEnabled(tool.id, target.checked)
+              if (!ok) target.checked = previous
+            }}
+          />
         </header>
 
         {#if enabled}

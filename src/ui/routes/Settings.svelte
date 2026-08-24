@@ -30,7 +30,16 @@ async function importConfig() {
 <section>
   <h2>Theme</h2>
   <div class="row">
-    <select aria-label="Theme" value={ui.settings?.ui.theme ?? 'auto'} onchange={(e) => setTheme(e.currentTarget.value as ThemeChoice)}>
+    <select
+      aria-label="Theme"
+      value={ui.settings?.ui.theme ?? 'auto'}
+      onchange={async (e) => {
+        const target = e.currentTarget
+        const previous = ui.settings?.ui.theme ?? 'auto'
+        const ok = await setTheme(target.value as ThemeChoice)
+        if (!ok) target.value = previous
+      }}
+    >
       {#each themes as theme (theme)}<option value={theme}>{theme}</option>{/each}
     </select>
   </div>

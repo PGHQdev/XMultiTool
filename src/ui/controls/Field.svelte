@@ -9,7 +9,7 @@ let {
 }: {
   field: Field
   value: unknown
-  onchange: (next: unknown) => void
+  onchange: (next: unknown) => Promise<boolean>
 } = $props()
 
 const control = $derived(controlFor(field))
@@ -22,13 +22,48 @@ const control = $derived(controlFor(field))
   </span>
 
   {#if control === 'switch'}
-    <input type="checkbox" checked={value === true} onchange={(e) => onchange(e.currentTarget.checked)} />
+    <input
+      type="checkbox"
+      checked={value === true}
+      onchange={async (e) => {
+        const target = e.currentTarget
+        const previous = value === true
+        const ok = await onchange(target.checked)
+        if (!ok) target.checked = previous
+      }}
+    />
   {:else if control === 'number'}
-    <input type="number" value={value as number} onchange={(e) => onchange(Number(e.currentTarget.value))} />
+    <input
+      type="number"
+      value={value as number}
+      onchange={async (e) => {
+        const target = e.currentTarget
+        const previous = value as number
+        const ok = await onchange(Number(target.value))
+        if (!ok) target.value = String(previous)
+      }}
+    />
   {:else if control === 'text'}
-    <input type="text" value={value as string} onchange={(e) => onchange(e.currentTarget.value)} />
+    <input
+      type="text"
+      value={value as string}
+      onchange={async (e) => {
+        const target = e.currentTarget
+        const previous = value as string
+        const ok = await onchange(target.value)
+        if (!ok) target.value = previous
+      }}
+    />
   {:else if control === 'select' && field.type === 'enum'}
-    <select value={value as string} onchange={(e) => onchange(e.currentTarget.value)}>
+    <select
+      value={value as string}
+      onchange={async (e) => {
+        const target = e.currentTarget
+        const previous = value as string
+        const ok = await onchange(target.value)
+        if (!ok) target.value = previous
+      }}
+    >
       {#each field.options as option (option.value)}
         <option value={option.value}>{option.label}</option>
       {/each}
@@ -37,7 +72,17 @@ const control = $derived(controlFor(field))
     <textarea
       rows="4"
       value={(value as string[] | undefined)?.join('\n') ?? ''}
-      onchange={(e) => onchange(e.currentTarget.value.split('\n').map((s) => s.trim()).filter(Boolean))}
+      onchange={async (e) => {
+        const target = e.currentTarget
+        const previous = (value as string[] | undefined)?.join('\n') ?? ''
+        const ok = await onchange(
+          target.value
+            .split('\n')
+            .map((s) => s.trim())
+            .filter(Boolean),
+        )
+        if (!ok) target.value = previous
+      }}
     ></textarea>
   {/if}
 </label>
