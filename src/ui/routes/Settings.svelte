@@ -30,7 +30,7 @@ async function importConfig() {
 <section>
   <h2>Theme</h2>
   <div class="row">
-    <select value={ui.settings?.ui.theme ?? 'auto'} onchange={(e) => setTheme(e.currentTarget.value as ThemeChoice)}>
+    <select aria-label="Theme" value={ui.settings?.ui.theme ?? 'auto'} onchange={(e) => setTheme(e.currentTarget.value as ThemeChoice)}>
       {#each themes as theme (theme)}<option value={theme}>{theme}</option>{/each}
     </select>
   </div>
@@ -48,15 +48,12 @@ async function importConfig() {
   {:else}
     <p class="empty">No readings yet.</p>
   {/each}
-
-  {#if ui.error}<p class="error">{ui.error}</p>{/if}
 </section>
 
 <style>
   h2 { font-size: var(--xmt-text-size); padding: 16px 16px 4px; margin: 0; color: var(--xmt-text-muted); }
   .row { display: flex; gap: 12px; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--xmt-border); }
   .empty { padding: 16px; color: var(--xmt-text-muted); }
-  .error { padding: 16px; color: var(--xmt-danger); }
   button { border-radius: var(--xmt-radius-pill); border: 0; background: var(--xmt-accent); color: var(--xmt-accent-text); padding: 8px 16px; font-weight: 700; cursor: pointer; }
   button:disabled { opacity: 0.5; cursor: default; }
 </style>

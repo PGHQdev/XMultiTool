@@ -30,22 +30,25 @@ export async function loadAll(): Promise<void> {
 }
 
 export async function setEnabled(id: string, on: boolean): Promise<void> {
-  ui.settings = await safe(() =>
+  const next = await safe(() =>
     bus.request<StoredSettings>('settings:setEnabled', { id, on }),
   )
+  if (next) ui.settings = next
 }
 
 export async function patchTool(
   id: string,
   patch: Record<string, unknown>,
 ): Promise<void> {
-  ui.settings = await safe(() =>
+  const next = await safe(() =>
     bus.request<StoredSettings>('settings:patchTool', { id, patch }),
   )
+  if (next) ui.settings = next
 }
 
 export async function setTheme(theme: ThemeChoice): Promise<void> {
-  ui.settings = await safe(() =>
+  const next = await safe(() =>
     bus.request<StoredSettings>('settings:setTheme', { theme }),
   )
+  if (next) ui.settings = next
 }
