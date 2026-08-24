@@ -19,6 +19,18 @@ async function safe<T>(run: () => Promise<T>): Promise<T | null> {
   }
 }
 
+// A null reply means the write failed. Assigning the fetched value keeps the panel in
+// sync with the worker; on failure, replacing ui.settings with a shallow copy of itself
+// re-triggers the controls bound to it (checked/value are one-way) so a control the user
+// just touched snaps back to the stored value instead of showing the unsaved click.
+function applySettingsReply(next: StoredSettings | null): void {
+  if (next) {
+    ui.settings = next
+  } else if (ui.settings) {
+    ui.settings = { ...ui.settings }
+  }
+}
+
 export async function loadAll(): Promise<void> {
   ui.settings = await safe(() =>
     bus.request<StoredSettings>('settings:get', undefined),
@@ -30,25 +42,28 @@ export async function loadAll(): Promise<void> {
 }
 
 export async function setEnabled(id: string, on: boolean): Promise<void> {
-  const next = await safe(() =>
-    bus.request<StoredSettings>('settings:setEnabled', { id, on }),
+  applySettingsReply(
+    await safe(() =>
+      bus.request<StoredSettings>('settings:setEnabled', { id, on }),
+    ),
   )
-  if (next) ui.settings = next
 }
 
 export async function patchTool(
   id: string,
   patch: Record<string, unknown>,
 ): Promise<void> {
-  const next = await safe(() =>
-    bus.request<StoredSettings>('settings:patchTool', { id, patch }),
+  applySettingsReply(
+    await safe(() =>
+      bus.request<StoredSettings>('settings:patchTool', { id, patch }),
+    ),
   )
-  if (next) ui.settings = next
 }
 
 export async function setTheme(theme: ThemeChoice): Promise<void> {
-  const next = await safe(() =>
-    bus.request<StoredSettings>('settings:setTheme', { theme }),
+  applySettingsReply(
+    await safe(() =>
+      bus.request<StoredSettings>('settings:setTheme', { theme }),
+    ),
   )
-  if (next) ui.settings = next
 }
