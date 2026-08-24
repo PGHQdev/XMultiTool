@@ -10,7 +10,17 @@ describe('normalizeTimeline', () => {
   const result = normalizeTimeline(fixture)
 
   it('returns one record per tweet entry', () => {
-    expect(result.posts.map((p) => p.id)).toEqual(['1001', '2002'])
+    expect(result.posts.map((p) => p.id)).toEqual(['1001', '2002', '3003'])
+  })
+
+  it('reads the tweets a module carries in its items', () => {
+    const thread = result.posts.find((p) => p.id === '3003')
+    expect(thread?.text).toBe('a reply inside a thread')
+    expect(thread?.isReply).toBe(true)
+  })
+
+  it('does not count a module it read tweets from as unknown', () => {
+    expect(result.unknownEntryTypes).not.toContain('TimelineTimelineModule')
   })
 
   it('reads the author', () => {
@@ -51,7 +61,30 @@ describe('normalizeTimeline', () => {
   })
 
   it('counts an unknown entry type instead of throwing', () => {
-    expect(result.unknownEntryTypes).toEqual(['TimelineTimelineModule'])
+    expect(result.unknownEntryTypes).toEqual(['TimelineTimelineCursor'])
+  })
+
+  it('counts a module that carries no tweet as unknown', () => {
+    const payload = {
+      instructions: [
+        {
+          entries: [
+            {
+              content: {
+                entryType: 'TimelineTimelineModule',
+                items: [
+                  { item: { itemContent: { itemType: 'TimelineUser' } } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    }
+    expect(normalizeTimeline(payload)).toEqual({
+      posts: [],
+      unknownEntryTypes: ['TimelineTimelineModule'],
+    })
   })
 
   it('survives an empty payload', () => {

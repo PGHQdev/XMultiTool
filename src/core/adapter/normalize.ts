@@ -153,20 +153,31 @@ export function normalizeTimeline(payload: unknown): NormalizeResult {
       const content = get(entry, ['content'])
       if (!isDict(content)) continue
 
-      const itemContent = get(content, ['itemContent'])
-      if (!isDict(itemContent) || itemContent.itemType !== 'TimelineTweet') {
-        const type = content.entryType
-        if (typeof type === 'string' && !unknownEntryTypes.includes(type)) {
-          unknownEntryTypes.push(type)
-        }
-        continue
-      }
+      // A module holds a conversation thread: the tweets sit one level deeper, in
+      // content.items[].item.itemContent, and are lost if only the flat item is read.
+      const items = Array.isArray(content.items) ? content.items : []
+      const candidates = [
+        get(content, ['itemContent']),
+        ...items.map((item) => get(item, ['item', 'itemContent'])),
+      ]
 
-      const post = normalizeTweetResult(
-        get(itemContent, ['tweet_results', 'result']),
-        isDict(itemContent.promotedMetadata),
-      )
-      if (post) posts.push(post)
+      let matched = false
+      for (const itemContent of candidates) {
+        if (!isDict(itemContent) || itemContent.itemType !== 'TimelineTweet')
+          continue
+        matched = true
+        const post = normalizeTweetResult(
+          get(itemContent, ['tweet_results', 'result']),
+          isDict(itemContent.promotedMetadata),
+        )
+        if (post) posts.push(post)
+      }
+      if (matched) continue
+
+      const type = content.entryType
+      if (typeof type === 'string' && !unknownEntryTypes.includes(type)) {
+        unknownEntryTypes.push(type)
+      }
     }
   }
 

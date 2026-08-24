@@ -95,10 +95,63 @@
                 }
               },
               {
-                "entryId": "who-to-follow-3",
+                "entryId": "conversationthread-3003",
                 "content": {
                   "entryType": "TimelineTimelineModule",
-                  "items": []
+                  "items": [
+                    {
+                      "entryId": "conversationthread-3003-tweet-3003",
+                      "item": {
+                        "itemContent": {
+                          "itemType": "TimelineTweet",
+                          "tweet_results": {
+                            "result": {
+                              "__typename": "Tweet",
+                              "rest_id": "3003",
+                              "core": {
+                                "user_results": {
+                                  "result": {
+                                    "rest_id": "u3",
+                                    "legacy": {
+                                      "screen_name": "reader",
+                                      "name": "Reader"
+                                    }
+                                  }
+                                }
+                              },
+                              "legacy": {
+                                "created_at": "Tue Jan 07 09:15:00 +0000 2025",
+                                "full_text": "a reply inside a thread",
+                                "lang": "en",
+                                "reply_count": 1,
+                                "retweet_count": 0,
+                                "favorite_count": 2,
+                                "quote_count": 0,
+                                "in_reply_to_status_id_str": "1001"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "entryId": "conversationthread-3003-cursor-showmore",
+                      "item": {
+                        "itemContent": {
+                          "itemType": "TimelineTimelineCursor",
+                          "cursorType": "ShowMoreThreads"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "entryId": "cursor-bottom-9",
+                "content": {
+                  "entryType": "TimelineTimelineCursor",
+                  "cursorType": "Bottom",
+                  "value": "DAABCgABsynthetic"
                 }
               }
             ]
