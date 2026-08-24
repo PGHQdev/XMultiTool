@@ -6,4 +6,22 @@ dist/
 .DS_Store
 .env
 .env.*
-.superpowers/
+
+# Logs
+logs
+*.log
+
+# Build artifacts
+stats.html
+stats-*.json
+web-ext.config.ts
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
