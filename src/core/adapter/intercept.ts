@@ -9,10 +9,13 @@ export interface BridgeMessage {
   payload: unknown
 }
 
+// Method syntax on purpose: it keeps a real Window, whose postMessage is
+// overloaded, assignable to this seam alongside the test doubles.
 export interface InterceptTarget {
   fetch: typeof fetch
   XMLHttpRequest: typeof XMLHttpRequest
   postMessage(message: unknown, targetOrigin: string): void
+  location?: { origin?: string }
 }
 
 function urlOf(input: RequestInfo | URL): string {
@@ -26,6 +29,17 @@ function trackedOperation(url: string): string | null {
   return op && isTrackedOperation(op) ? op : null
 }
 
+// An opaque or unreadable origin falls back to the wildcard, because losing the
+// origin must narrow nothing away: a dropped message is a lost capture.
+function originOf(target: InterceptTarget): string {
+  try {
+    const origin = target.location?.origin
+    return origin && origin !== 'null' ? origin : '*'
+  } catch {
+    return '*'
+  }
+}
+
 export function installInterceptor(target: InterceptTarget): () => void {
   const originalFetch = target.fetch
   const originalOpen = target.XMLHttpRequest.prototype?.open
@@ -35,7 +49,7 @@ export function installInterceptor(target: InterceptTarget): () => void {
     try {
       target.postMessage(
         { tag: BRIDGE_TAG, op, url, payload } satisfies BridgeMessage,
-        '*',
+        originOf(target),
       )
     } catch {
       // A page that rejects the message must not break the extension or the site.
@@ -67,6 +81,17 @@ export function installInterceptor(target: InterceptTarget): () => void {
     }
     return response
   } as typeof fetch
+
+  // A page that probes fetch for a wrapper reads arity and source first.
+  Object.defineProperty(patchedFetch, 'length', {
+    value: originalFetch.length,
+    configurable: true,
+  })
+  Object.defineProperty(patchedFetch, 'toString', {
+    value: () => originalFetch.toString(),
+    writable: true,
+    configurable: true,
+  })
 
   target.fetch = patchedFetch
 

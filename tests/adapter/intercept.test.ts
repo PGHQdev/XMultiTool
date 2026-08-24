@@ -11,13 +11,16 @@ const UNTRACKED = 'https://x.com/i/api/graphql/hash1/CreateTweet'
 
 function target(
   fetchImpl: typeof fetch,
-): InterceptTarget & { messages: unknown[] } {
+): InterceptTarget & { messages: unknown[]; origins: string[] } {
   return {
     messages: [],
+    origins: [],
     fetch: fetchImpl,
     XMLHttpRequest: class {} as unknown as typeof XMLHttpRequest,
-    postMessage(message) {
+    location: { origin: 'https://x.com' },
+    postMessage(message, targetOrigin) {
       this.messages.push(message)
+      this.origins.push(targetOrigin)
     },
   }
 }
@@ -61,6 +64,83 @@ function xhrTarget() {
 }
 
 describe('installInterceptor', () => {
+  it('assigns the patched fetch onto the object it is handed', () => {
+    const original = (async () => jsonResponse({})) as typeof fetch
+    const t = target(original)
+    installInterceptor(t)
+    expect(t.fetch).not.toBe(original)
+  })
+
+  it('assigns the patched fetch onto a real window', async () => {
+    const original = window.fetch
+    const uninstall = installInterceptor(window)
+    expect(window.fetch).not.toBe(original)
+    uninstall()
+    expect(window.fetch).toBe(original)
+  })
+
+  it('calls the original fetch with the target as receiver when unbound', async () => {
+    const receivers: unknown[] = []
+    const t = target(async function (this: unknown) {
+      receivers.push(this)
+      return jsonResponse({})
+    } as typeof fetch)
+    installInterceptor(t)
+    const unbound = t.fetch
+    await unbound(TRACKED)
+    expect(receivers).toEqual([t])
+  })
+
+  it('keeps the arity and source of the original fetch', () => {
+    const original = (async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({})) as typeof fetch
+    const t = target(original)
+    installInterceptor(t)
+    expect(t.fetch.length).toBe(original.length)
+    expect(t.fetch.toString()).toBe(original.toString())
+  })
+
+  // Masking the source leaves the release checklist no way to read the install off
+  // toString, so step 2 reads the own property that does the masking instead.
+  it('carries an own toString the unpatched fetch does not have', () => {
+    const original = (async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({})) as typeof fetch
+    const t = target(original)
+    expect(Object.hasOwn(t.fetch, 'toString')).toBe(false)
+    installInterceptor(t)
+    expect(Object.hasOwn(t.fetch, 'toString')).toBe(true)
+  })
+
+  it('posts to the origin of the page instead of the wildcard', async () => {
+    const t = target(async () => jsonResponse({ data: 1 }))
+    installInterceptor(t)
+    await t.fetch(TRACKED)
+    await vi.waitFor(() => expect(t.messages).toHaveLength(1))
+    expect(t.origins).toEqual(['https://x.com'])
+  })
+
+  it('falls back to the wildcard when the origin cannot be read', async () => {
+    const t = target(async () => jsonResponse({ data: 1 }))
+    Object.defineProperty(t, 'location', {
+      get() {
+        throw new Error('cross-origin')
+      },
+    })
+    installInterceptor(t)
+    await t.fetch(TRACKED)
+    await vi.waitFor(() => expect(t.messages).toHaveLength(1))
+    expect(t.origins).toEqual(['*'])
+  })
+
+  it('falls back to the wildcard for an opaque origin', async () => {
+    const t = target(async () => jsonResponse({ data: 1 }))
+    t.location = { origin: 'null' }
+    installInterceptor(t)
+    await t.fetch(TRACKED)
+    await vi.waitFor(() => expect(t.messages).toHaveLength(1))
+    expect(t.origins).toEqual(['*'])
+  })
+
   it('forwards a tracked graphql response', async () => {
     const t = target(async () => jsonResponse({ data: { ok: true } }))
     installInterceptor(t)
