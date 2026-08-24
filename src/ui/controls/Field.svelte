@@ -12,7 +12,7 @@ let {
   onchange: (next: unknown) => void
 } = $props()
 
-const control = controlFor(field)
+const control = $derived(controlFor(field))
 </script>
 
 <label class="row">
