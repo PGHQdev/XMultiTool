@@ -1,5 +1,6 @@
 /* src/core/ui/content.css — the only styles injected into x.com */
 [data-xmt="hide"] {
+  /* biome-ignore lint/complexity/noImportantStyles: X's own styles are specific; a hidden cell must stay hidden */
   display: none !important;
 }
 
