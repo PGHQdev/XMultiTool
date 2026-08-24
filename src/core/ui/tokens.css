@@ -1,0 +1,55 @@
+:root,
+[data-xmt-theme="light"] {
+  --xmt-bg: #ffffff;
+  --xmt-bg-raised: #f7f9f9;
+  --xmt-bg-hover: #f7f9f9;
+  --xmt-text: #0f1419;
+  --xmt-text-muted: #536471;
+  --xmt-border: #eff3f4;
+  --xmt-accent: #1d9bf0;
+  --xmt-accent-text: #ffffff;
+  --xmt-danger: #f4212e;
+}
+
+[data-xmt-theme="dim"] {
+  --xmt-bg: #15202b;
+  --xmt-bg-raised: #1e2732;
+  --xmt-bg-hover: #1c2732;
+  --xmt-text: #f7f9f9;
+  --xmt-text-muted: #8b98a5;
+  --xmt-border: #38444d;
+  --xmt-accent: #1d9bf0;
+  --xmt-accent-text: #ffffff;
+  --xmt-danger: #f4212e;
+}
+
+[data-xmt-theme="lights-out"] {
+  --xmt-bg: #000000;
+  --xmt-bg-raised: #16181c;
+  --xmt-bg-hover: #080808;
+  --xmt-text: #e7e9ea;
+  --xmt-text-muted: #71767b;
+  --xmt-border: #2f3336;
+  --xmt-accent: #1d9bf0;
+  --xmt-accent-text: #ffffff;
+  --xmt-danger: #f4212e;
+}
+
+:root {
+  --xmt-radius-pill: 9999px;
+  --xmt-radius-box: 16px;
+  --xmt-text-size: 15px;
+  --xmt-text-size-small: 13px;
+  --xmt-font:
+    "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --xmt-motion: 120ms ease;
+}
+
+body {
+  background: var(--xmt-bg);
+  color: var(--xmt-text);
+  font-family: var(--xmt-font);
+  font-size: var(--xmt-text-size);
+  margin: 0;
+}
