@@ -5,9 +5,10 @@ each one a toggle over one shared core.
 
 ## State
 
-Sub-project 0, the platform core, is in progress. It ships the adapter, the tool
-registry, the settings store and the side panel. Reading control, data export and author
-tools follow as separate modules.
+The platform core is in place: the adapter, the tool registry, the settings store and
+the panel. The first reading tool ships with it. The timeline cleaner dims ads,
+engagement bait, muted words, muted accounts and small accounts, and names the rule on
+each post it dims. Data export and author tools follow as separate modules.
 
 ## Install for development
 

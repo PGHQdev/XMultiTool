@@ -41,9 +41,8 @@ vi.mock('../../src/core/tools/index', () => ({
   ],
 }))
 
-const { exportConfig, importConfig, loadAll, setEnabled, ui } = await import(
-  '../../src/ui/state.svelte'
-)
+const { exportConfig, importConfig, loadAll, refreshStats, setEnabled, ui } =
+  await import('../../src/ui/state.svelte')
 
 function settings(theme: StoredSettings['ui']['theme']): StoredSettings {
   return { version: 1, enabled: {}, tools: {}, ui: { theme } }
@@ -102,6 +101,47 @@ describe('loadAll', () => {
     })
     await loadAll()
     expect(ui.error).toBe('storage is unreadable')
+  })
+})
+
+describe('refreshStats', () => {
+  it('reads the counters again', async () => {
+    replies({
+      'stats:get': {
+        seen: 3,
+        hidden: 0,
+        dimmed: 1,
+        badged: 0,
+        byReason: { promoted: 1 },
+        unknownEntryTypes: [],
+      },
+      'health:get': [{ id: 'dom:cell', healthy: true, matches: 4, at: 1 }],
+    })
+    await refreshStats()
+    expect(ui.stats?.dimmed).toBe(1)
+    expect(ui.health).toHaveLength(1)
+  })
+
+  it('keeps the last reading and stays quiet when the tab stops answering', async () => {
+    replies({
+      'stats:get': {
+        seen: 3,
+        hidden: 0,
+        dimmed: 1,
+        badged: 0,
+        byReason: {},
+        unknownEntryTypes: [],
+      },
+      'health:get': [],
+    })
+    await refreshStats()
+    replies({
+      'stats:get': new Error('Open an x.com tab first.'),
+      'health:get': new Error('Open an x.com tab first.'),
+    })
+    await refreshStats()
+    expect(ui.stats?.seen).toBe(3)
+    expect(ui.error).toBeNull()
   })
 })
 

@@ -4,12 +4,20 @@ import { applyTheme, resolveTheme } from '../core/ui/theme'
 import Activity from './routes/Activity.svelte'
 import Filter from './routes/Filter.svelte'
 import Settings from './routes/Settings.svelte'
-import { loadAll, ui } from './state.svelte'
+import { loadAll, refreshStats, ui } from './state.svelte'
 
 type Tab = 'filter' | 'activity' | 'settings'
 let tab = $state<Tab>('filter')
 
-onMount(loadAll)
+// The counters change while the user scrolls x.com, so the panel keeps reading them
+// for as long as it is open.
+const POLL_MS = 2_000
+
+onMount(() => {
+  void loadAll()
+  const timer = setInterval(() => void refreshStats(), POLL_MS)
+  return () => clearInterval(timer)
+})
 
 $effect(() => {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches

@@ -45,16 +45,27 @@ export async function loadAll(): Promise<void> {
   ui.settings = await safe(() =>
     bus.request<StoredSettings>('settings:get', undefined),
   )
-  ui.stats = await safe(() => bus.request<Stats>('stats:get', undefined))
-  ui.health =
-    (await safe(() => bus.request<HealthEntry[]>('health:get', undefined))) ??
-    []
+  await refreshStats()
   // The reply travels through the worker into the x.com tab, so it rejects whenever no
   // such tab is open. That is the normal state of the panel, not a failure to report.
   ui.detectedTheme = await safe(
     () => bus.request<XTheme | null>('theme:get', undefined),
     { quiet: true },
   )
+}
+
+// The panel polls these while it is open, so a rejection is the ordinary answer of a
+// browser with no x.com tab in front of it. A failed read keeps the last one on screen.
+export async function refreshStats(): Promise<void> {
+  const stats = await safe(() => bus.request<Stats>('stats:get', undefined), {
+    quiet: true,
+  })
+  if (stats) ui.stats = stats
+  const health = await safe(
+    () => bus.request<HealthEntry[]>('health:get', undefined),
+    { quiet: true },
+  )
+  if (health) ui.health = health
 }
 
 // The worker broadcasts every settings write it makes. The options page and the side
