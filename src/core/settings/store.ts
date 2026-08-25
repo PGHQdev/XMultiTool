@@ -65,6 +65,16 @@ export function migrate(raw: unknown): StoredSettings {
   }
 }
 
+// A tool ships either off or on; the stored value, once written, always wins. The
+// store knows nothing of the tool list, so the caller passes the tool it is asking about.
+export function toolEnabled(
+  settings: StoredSettings,
+  tool: { id: string; defaultEnabled?: boolean },
+): boolean {
+  const stored = settings.enabled[tool.id]
+  return typeof stored === 'boolean' ? stored : tool.defaultEnabled === true
+}
+
 export class SettingsStore {
   private state: StoredSettings = fresh()
   private readonly listeners = new Set<(state: StoredSettings) => void>()
@@ -87,8 +97,9 @@ export class SettingsStore {
     return this.state
   }
 
-  isEnabled(toolId: string): boolean {
-    return this.state.enabled[toolId] === true
+  isEnabled(tool: string | { id: string; defaultEnabled?: boolean }): boolean {
+    const asked = typeof tool === 'string' ? { id: tool } : tool
+    return toolEnabled(this.state, asked)
   }
 
   rawToolSettings(toolId: string): Record<string, unknown> {

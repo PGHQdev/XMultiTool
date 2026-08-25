@@ -1,5 +1,6 @@
 <script lang="ts">
 import { coerce } from '../../core/settings/schema'
+import { toolEnabled } from '../../core/settings/store'
 import { CORE_TOOLS } from '../../core/tools/index'
 import Field from '../controls/Field.svelte'
 import { restoreControl } from '../controls/restore-control'
@@ -13,7 +14,7 @@ const modules = ['core', 'reading', 'export', 'author'] as const
   {#if tools.length > 0}
     <h2>{module}</h2>
     {#each tools as tool (tool.id)}
-      {@const enabled = ui.settings?.enabled[tool.id] === true}
+      {@const enabled = ui.settings ? toolEnabled(ui.settings, tool) : false}
       {@const values = coerce(tool.settings, ui.settings?.tools[tool.id] ?? {}) as Record<string, unknown>}
       <section>
         <header class="row">

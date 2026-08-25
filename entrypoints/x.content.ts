@@ -47,7 +47,8 @@ export default defineContentScript({
     const health = new SelectorHealth(() => Date.now())
     const registry = new ToolRegistry({
       tools: CORE_TOOLS,
-      isEnabled: (id) => settings.isEnabled(id),
+      isEnabled: (id) =>
+        settings.isEnabled(CORE_TOOLS.find((t) => t.id === id) ?? id),
       contextFor: (id) => {
         const tool = CORE_TOOLS.find((t) => t.id === id)
         return {

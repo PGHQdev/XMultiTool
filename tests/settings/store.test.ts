@@ -6,6 +6,7 @@ import {
   SETTINGS_KEY,
   SETTINGS_VERSION,
   SettingsStore,
+  toolEnabled,
 } from '../../src/core/settings/store'
 
 function fakeArea(
@@ -183,5 +184,27 @@ describe('SettingsStore', () => {
     expect(first).toHaveBeenCalledTimes(1)
     expect(third).toHaveBeenCalledTimes(1)
     expect((area.data[SETTINGS_KEY] as any).enabled.a).toBe(true)
+  })
+})
+
+describe('toolEnabled', () => {
+  const settings = (enabled: Record<string, boolean>) =>
+    migrate({ version: SETTINGS_VERSION, enabled, tools: {}, ui: {} })
+
+  it('is off for a tool the user never met', () => {
+    expect(toolEnabled(settings({}), { id: 'a' })).toBe(false)
+  })
+
+  it('is on for a tool that ships enabled', () => {
+    expect(toolEnabled(settings({}), { id: 'a', defaultEnabled: true })).toBe(
+      true,
+    )
+  })
+
+  it('lets the stored choice beat the default in both directions', () => {
+    expect(
+      toolEnabled(settings({ a: false }), { id: 'a', defaultEnabled: true }),
+    ).toBe(false)
+    expect(toolEnabled(settings({ a: true }), { id: 'a' })).toBe(true)
   })
 })
