@@ -64,6 +64,4 @@ async function submitImport() {
   h2 { font-size: var(--xmt-text-size); padding: 16px 16px 4px; margin: 0; color: var(--xmt-text-muted); }
   .row { display: flex; gap: 12px; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--xmt-border); }
   .empty { padding: 16px; color: var(--xmt-text-muted); }
-  button { border-radius: var(--xmt-radius-pill); border: 0; background: var(--xmt-accent); color: var(--xmt-accent-text); padding: 8px 16px; font-weight: 700; cursor: pointer; }
-  button:disabled { opacity: 0.5; cursor: default; }
 </style>

@@ -1,0 +1,107 @@
+/* src/core/ui/controls.css — one look for every control in both panel surfaces.
+   The panel sits beside x.com, so the controls copy X's own: a pill switch, a
+   filled field with a blue focus edge, and a pill button. */
+
+input[type="checkbox"] {
+  appearance: none;
+  flex: none;
+  margin: 0;
+  width: 42px;
+  height: 24px;
+  border-radius: var(--xmt-radius-pill);
+  background: var(--xmt-border);
+  cursor: pointer;
+  transition: background var(--xmt-motion);
+}
+
+input[type="checkbox"]::after {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  transition: transform var(--xmt-motion);
+}
+
+input[type="checkbox"]:checked {
+  background: var(--xmt-accent);
+}
+
+input[type="checkbox"]:checked::after {
+  transform: translateX(18px);
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font: inherit;
+  color: var(--xmt-text);
+  background: var(--xmt-bg-raised);
+  border: 1px solid var(--xmt-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: border-color var(--xmt-motion);
+}
+
+input[type="number"] {
+  width: 96px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path d="M1 1l5 5 5-5" fill="none" stroke="%2371767b" stroke-width="2" stroke-linecap="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--xmt-accent);
+  outline: none;
+}
+
+input[type="checkbox"]:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--xmt-accent);
+  outline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  font-weight: 700;
+  border: 0;
+  border-radius: var(--xmt-radius-pill);
+  background: var(--xmt-accent);
+  color: var(--xmt-accent-text);
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: filter var(--xmt-motion);
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--xmt-text);
+  border: 1px solid var(--xmt-border);
+}
