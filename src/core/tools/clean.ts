@@ -2,6 +2,7 @@ import {
   type CleanSettings,
   DEFAULT_CLEAN_SETTINGS as D,
   judge,
+  type Reason,
 } from '../reading/rules'
 import type { Schema } from '../settings/schema'
 import type { Tool } from '../types'
@@ -49,6 +50,19 @@ const settings: Schema<CleanSettings> = {
     label: 'Follower floor',
     help: 'Dims an account you do not follow below this count. 0 turns it off.',
   },
+}
+
+// The panel counts dimmed posts by reason. This is the one place that ties a
+// settings field to the reason its rule writes, so the UI stays free of rule knowledge.
+export const REASON_BY_FIELD: Record<keyof CleanSettings, Reason> = {
+  promoted: 'promoted',
+  bait: 'engagement bait',
+  ragebait: 'ragebait',
+  reposts: 'repost',
+  replies: 'reply',
+  mutedWords: 'muted word',
+  mutedHandles: 'muted account',
+  minFollowers: 'small account',
 }
 
 export const cleanTool: Tool<CleanSettings> = {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_CLEAN_SETTINGS } from '../../src/core/reading/rules'
 import { defaultsOf } from '../../src/core/settings/schema'
-import { cleanTool } from '../../src/core/tools/clean'
+import { cleanTool, REASON_BY_FIELD } from '../../src/core/tools/clean'
 import { CORE_TOOLS } from '../../src/core/tools/index'
 import type { Post, ToolCtx } from '../../src/core/types'
 
@@ -67,5 +67,14 @@ describe('the timeline cleaner', () => {
 
   it('needs no permission beyond the host', () => {
     expect(cleanTool.permissions ?? []).toEqual([])
+  })
+
+  it('names the reason each rule produces, so the panel can count by rule', () => {
+    expect(Object.keys(REASON_BY_FIELD).sort()).toEqual(
+      Object.keys(cleanTool.settings).sort(),
+    )
+    expect(new Set(Object.values(REASON_BY_FIELD)).size).toBe(
+      Object.keys(cleanTool.settings).length,
+    )
   })
 })

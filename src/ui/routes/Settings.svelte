@@ -1,9 +1,14 @@
 <script lang="ts">
 import type { ThemeChoice } from '../../core/settings/store'
+import { cleanTool } from '../../core/tools/clean'
+import { CORE_TOOLS } from '../../core/tools/index'
 import { restoreControl } from '../controls/restore-control'
+import ToolCard from '../controls/ToolCard.svelte'
 import { exportConfig, importConfig, setTheme, ui } from '../state.svelte'
 
 const themes: ThemeChoice[] = ['auto', 'light', 'dim', 'lights-out']
+// The cleaner has the Filter screen; everything else is rendered from its schema.
+const others = CORE_TOOLS.filter((tool) => tool.id !== cleanTool.id)
 let importText = $state('')
 
 async function downloadConfig() {
@@ -51,6 +56,11 @@ async function submitImport() {
     <textarea rows="4" bind:value={importText} placeholder="Paste a config file"></textarea>
     <button onclick={submitImport} disabled={!importText}>Import</button>
   </div>
+
+  <h2>Other tools</h2>
+  {#each others as tool (tool.id)}
+    <ToolCard {tool} />
+  {/each}
 
   <h2>Selector health</h2>
   {#each ui.health as entry (entry.id)}

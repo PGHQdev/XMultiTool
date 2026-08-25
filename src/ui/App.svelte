@@ -1,13 +1,13 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 import { applyTheme, resolveTheme } from '../core/ui/theme'
+import Activity from './routes/Activity.svelte'
+import Filter from './routes/Filter.svelte'
 import Settings from './routes/Settings.svelte'
-import Status from './routes/Status.svelte'
-import Tools from './routes/Tools.svelte'
 import { loadAll, ui } from './state.svelte'
 
-type Tab = 'status' | 'tools' | 'settings'
-let tab = $state<Tab>('status')
+type Tab = 'filter' | 'activity' | 'settings'
+let tab = $state<Tab>('filter')
 
 onMount(loadAll)
 
@@ -25,7 +25,7 @@ $effect(() => {
 </script>
 
 <nav>
-  {#each ['status', 'tools', 'settings'] as name (name)}
+  {#each ['filter', 'activity', 'settings'] as name (name)}
     <button class:active={tab === name} onclick={() => (tab = name as Tab)}>{name}</button>
   {/each}
 </nav>
@@ -33,7 +33,7 @@ $effect(() => {
 {#if ui.error}<p class="error">{ui.error}</p>{/if}
 
 <main>
-  {#if tab === 'status'}<Status />{:else if tab === 'tools'}<Tools />{:else}<Settings />{/if}
+  {#if tab === 'filter'}<Filter />{:else if tab === 'activity'}<Activity />{:else}<Settings />{/if}
 </main>
 
 <style>

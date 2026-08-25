@@ -23,24 +23,25 @@ test.afterAll(async () => {
   await context.close()
 })
 
-test('the options page lists the core tool and remembers a toggle', async () => {
+test('the options page lists the rules and remembers a toggle', async () => {
   const page = await context.newPage()
   await page.goto(`chrome-extension://${extensionId}/options.html`)
 
-  await page.getByRole('button', { name: 'tools' }).click()
-  await expect(page.getByText('Diagnostics')).toBeVisible()
+  await expect(page.getByText('Ads and promoted posts')).toBeVisible()
+  await expect(page.getByText('Engagement bait')).toBeVisible()
 
-  const toggle = page.getByRole('checkbox').first()
-  await toggle.check()
-  await expect(page.getByText('Explain every post')).toBeVisible()
+  // Reposts ship off, so it is the one rule a click can turn on.
+  const reposts = page.getByRole('checkbox', { name: 'Reposts' })
+  await reposts.check()
 
   await page.reload()
-  await page.getByRole('button', { name: 'tools' }).click()
-  await expect(page.getByRole('checkbox').first()).toBeChecked()
+  await expect(page.getByRole('checkbox', { name: 'Reposts' })).toBeChecked()
 })
 
-test('the status page explains itself when no x tab is open', async () => {
+test('the filter screen explains itself when no x tab is open', async () => {
   const page = await context.newPage()
   await page.goto(`chrome-extension://${extensionId}/options.html`)
-  await expect(page.getByText('Open an x.com tab')).toBeVisible()
+  await expect(
+    page.getByText('Open an x.com tab to see what it caught.'),
+  ).toBeVisible()
 })
