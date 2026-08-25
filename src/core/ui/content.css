@@ -4,11 +4,35 @@
   display: none !important;
 }
 
+/* The cell keeps its opacity so the reason below stays readable; only the post fades.
+   Hover restores the post and takes the reason away, which is the undo. */
 [data-xmt="dim"] {
+  position: relative;
+}
+
+[data-xmt="dim"] > * {
   opacity: 0.35;
   transition: opacity 120ms ease;
 }
 
-[data-xmt="dim"]:hover {
+[data-xmt="dim"]:hover > * {
   opacity: 1;
+}
+
+/* The strip sits on the cell's bottom padding, clear of the avatar and the caret. */
+[data-xmt="dim"]::after {
+  content: attr(data-xmt-reason);
+  position: absolute;
+  right: 16px;
+  bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgb(113 118 123);
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+[data-xmt="dim"]:hover::after {
+  opacity: 0;
 }
