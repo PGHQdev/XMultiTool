@@ -46,7 +46,7 @@ $effect(() => {
 
 <style>
   nav { display: flex; border-bottom: 1px solid var(--xmt-border); position: sticky; top: 0; background: var(--xmt-bg); }
-  nav button { flex: 1; background: none; border: 0; color: var(--xmt-text-muted); font: inherit; font-weight: 700; padding: 14px 0; cursor: pointer; text-transform: capitalize; transition: color var(--xmt-motion); }
+  nav button { flex: 1; background: none; border: 0; border-radius: 0; color: var(--xmt-text-muted); font: inherit; font-weight: 700; padding: 14px 0; cursor: pointer; text-transform: capitalize; transition: color var(--xmt-motion); }
   nav button.active { color: var(--xmt-text); box-shadow: inset 0 -3px 0 var(--xmt-accent); }
   main { max-width: 720px; margin: 0 auto; }
   .error { padding: 16px; color: var(--xmt-danger); }

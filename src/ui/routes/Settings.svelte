@@ -71,7 +71,8 @@ async function submitImport() {
 </section>
 
 <style>
-  h2 { font-size: var(--xmt-text-size); padding: 16px 16px 4px; margin: 0; color: var(--xmt-text-muted); }
-  .row { display: flex; gap: 12px; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--xmt-border); }
+  h2 { font-size: var(--xmt-text-size-small); text-transform: uppercase; letter-spacing: 0.06em; padding: 18px 16px 6px; margin: 0; color: var(--xmt-text-muted); }
+  .row { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--xmt-border); }
+  .row button { align-self: flex-start; }
   .empty { padding: 16px; color: var(--xmt-text-muted); }
 </style>

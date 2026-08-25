@@ -40,8 +40,7 @@ const toList = (text: string): string[] =>
       <p class="figure">{ui.stats.dimmed}</p>
       <p class="caption">dimmed of {ui.stats.seen} posts read on this tab</p>
     {:else}
-      <p class="figure muted">—</p>
-      <p class="caption">Open an x.com tab to see what it caught.</p>
+      <p class="waiting">Open an x.com tab to see what it caught.</p>
     {/if}
   </div>
   <input
@@ -134,7 +133,7 @@ const toList = (text: string): string[] =>
   .hero { display: flex; align-items: center; gap: 16px; padding: 20px 16px; border-bottom: 1px solid var(--xmt-border); }
   .reading { flex: 1; }
   .figure { font-size: 40px; font-weight: 800; line-height: 1; margin: 0; letter-spacing: -0.02em; }
-  .figure.muted { color: var(--xmt-text-muted); }
+  .waiting { margin: 0; color: var(--xmt-text-muted); }
   .caption { margin: 6px 0 0; color: var(--xmt-text-muted); font-size: var(--xmt-text-size-small); }
   section { transition: opacity var(--xmt-motion); }
   section.off { opacity: 0.4; pointer-events: none; }
