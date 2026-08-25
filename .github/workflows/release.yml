@@ -27,4 +27,4 @@ jobs:
       - run: bun run zip:firefox
       - uses: softprops/action-gh-release@v2
         with:
-          files: .output/*.zip
+          files: dist/*.zip

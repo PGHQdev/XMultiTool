@@ -16,7 +16,7 @@ bun install
 bun run dev
 ```
 
-Then load `.output/chrome-mv3` as an unpacked extension.
+Then load `dist/chrome-mv3` as an unpacked extension.
 
 ## Commands
 

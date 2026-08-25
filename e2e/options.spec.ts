@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import { type BrowserContext, chromium, expect, test } from '@playwright/test'
 
-const EXTENSION = resolve('.output/chrome-mv3')
+const EXTENSION = resolve('dist/chrome-mv3')
 
 let context: BrowserContext
 let extensionId: string

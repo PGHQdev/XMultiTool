@@ -3,7 +3,7 @@
 CI proves the logic. Only this checklist proves the live path. Run it against x.com
 in a logged-in profile before every release.
 
-1. Load `.output/chrome-mv3` unpacked. Open x.com/home.
+1. Load `dist/chrome-mv3` unpacked. Open x.com/home.
 2. In the page console, read `Object.hasOwn(window.fetch, 'toString')`. It is `true`.
    The interceptor hides itself from a page that probes it, so `window.fetch.toString()`
    reports the native source either way; the own `toString` is what the patch adds.
@@ -30,7 +30,7 @@ in a logged-in profile before every release.
    turning a tool off does not re-scan or re-verdict cells already on screen.
 9. Export the config, import it into a clean profile, and confirm the toggles match.
 10. Confirm in DevTools → Network that the extension made no request to any host but x.com.
-11. Repeat steps 1 to 9 in the Firefox build, loaded from `.output/firefox-mv3`.
+11. Repeat steps 1 to 9 in the Firefox build, loaded from `dist/firefox-mv3`.
 12. Push the tag as `vX.Y.Z`. The release workflow strips the leading `v` and writes the
     rest into `package.json` before it builds, so the zips are named
     `xmultitool-X.Y.Z-*.zip`. `package.json` stays at `0.0.0` in the repository, and a
