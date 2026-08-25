@@ -89,6 +89,9 @@ export interface Tool<S = Record<string, never>> {
   name: string
   description: string
   module: 'core' | 'reading' | 'export' | 'author'
+  // A tool that earns its place without a decision from the user says so here. The
+  // stored value always wins, so turning one off survives every later load.
+  defaultEnabled?: boolean
   settings: import('./settings/schema').Schema<S>
   permissions?: string[]
   onInit?(ctx: ToolCtx<S>): void | Promise<void>
